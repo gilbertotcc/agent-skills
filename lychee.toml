@@ -1,0 +1,7 @@
+extensions = ["md"]
+
+exclude_loopback = true
+
+exclude_path = [
+  ".claude/**/*.md"
+]
