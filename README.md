@@ -8,15 +8,6 @@ designed to be portable and independent of any specific AI agent.
 Although the author has used these skills—otherwise, he shouldn’t have created
 them—their behavior has not been formally verified, so use at your own risk.
 
-## Prerequisites
-
-- [Node.js](https://nodejs.org/en/download) 22.20.0 or later, for the lint
-  and skills CLIs.
-- [lychee](https://github.com/lycheeverse/lychee#installation), for link
-  checks.
-- [Claude Code](https://code.claude.com/docs/en/setup) (optional), for the
-  development skills and the Markdown lint hook.
-
 ## Usage
 
 TODO: Add content.
