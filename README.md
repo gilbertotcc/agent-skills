@@ -15,12 +15,15 @@ TODO: Add content.
 ## Development
 
 Agent skills used while developing this repository are managed with
-[skills.sh](https://www.skills.sh/) and pinned in `skills-lock.json`. To
-restore them:
+[skills.sh](https://www.skills.sh/), pinned in `skills-lock.json` and
+installed in `.agents/skills/`. To restore them for Claude Code:
 
 ```sh
-npx skills experimental_install
+npx skills experimental_install --agent claude-code
 ```
+
+For another agent, replace `claude-code` with its name, so that `skills`
+links the skills where that agent looks for them.
 
 ## Quality checks
 

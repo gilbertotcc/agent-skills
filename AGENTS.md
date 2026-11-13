@@ -16,11 +16,13 @@ take precedence. Keep consumers' token cost low:
 
 ## Development skills
 
-`.claude/skills/` holds dev-only skills, not part of the collection. Skills
-pinned in `skills-lock.json` are managed only via the `skills` CLI
-(`npx skills experimental_install` to restore, `npx skills update -p`);
-others are authored here and edited directly. `.claude/` is excluded from
-lint and link checks; keep it so.
+Dev-only skills, not part of the collection. Skills pinned in
+`skills-lock.json` are installed by the `skills` CLI in `.agents/skills/`
+and linked into agent folders (e.g. `.claude/skills/`). Manage them only
+via the CLI (`npx skills experimental_install --agent <agent>` to restore,
+`npx skills update -p`). Other dev skills are authored in
+`.claude/skills/` and edited directly. `.agents/` and `.claude/` are
+excluded from lint and link checks; keep them so.
 
 ## Commits
 
