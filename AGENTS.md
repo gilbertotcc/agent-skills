@@ -45,11 +45,10 @@ per paragraph.
 No build; CI runs the equivalent of these:
 
 ```sh
-skills/markdown-editor/scripts/lint.sh [--fix] [file]  # lint; wrap prose at 80
-skills/markdown-editor/scripts/check-links.sh [file]   # links; .lycheeignore
+npx --yes markdownlint-cli2 [--fix]      # lint; wrap prose at 80
+lychee --no-progress --extensions md .   # links; .lycheeignore
 npx skills add . --list   # skills discoverable (when skills/ changes)
-tests/markdown-editor/run.sh   # script regression tests (needs node)
 ```
 
-Tests for a skill's scripts live in `tests/<skill>/`, outside `skills/`, so
-they don't ship with the skill. Add a case for every bug fixed.
+If a skill ships scripts, their tests live in `tests/<skill>/`, outside
+`skills/`, so they don't ship with the skill.

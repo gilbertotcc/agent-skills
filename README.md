@@ -46,8 +46,8 @@ npx skills add ./skills --agent claude-code
 ## Quality checks
 
 ```sh
-skills/markdown-editor/scripts/lint.sh          # add --fix to auto-fix
-skills/markdown-editor/scripts/check-links.sh
+npx --yes markdownlint-cli2              # add --fix to auto-fix
+lychee --no-progress --extensions md .
 npx skills add . --list   # every skill is discoverable
 ```
 
