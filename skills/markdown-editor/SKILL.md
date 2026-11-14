@@ -48,7 +48,8 @@ lychee --no-progress <file>                          # 2. links
 3. **Repeat** both steps if anything changed.
 
 If a tool is missing, tell the user what wasn't checked and point them to
-the skill's `README.md`; don't install it yourself.
+the skill's `README.md`. Install it yourself only when the user explicitly
+asks and no project or agent configuration (sandbox, permissions) blocks it.
 
 ## Sweep the project
 

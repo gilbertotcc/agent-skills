@@ -15,14 +15,16 @@ npx skills add gilbertotcc/agent-skills --skill markdown-editor
 
 ## Requirements
 
-Install these yourself; the agent never installs tools, it reports what is
-missing.
+Install these yourself. The agent reports a missing tool, and installs it
+only when you explicitly ask and its configuration (e.g. sandbox or
+permission settings) allows it.
 
 - **markdownlint-cli2** (required): install [Node.js](https://nodejs.org/)
-  and `npx` runs it with no further step, or install it globally:
+  and `npx` runs it with no further step, or install it, e.g.
 
   ```sh
-  npm install -g markdownlint-cli2
+  brew install markdownlint-cli2     # macOS
+  npm install -g markdownlint-cli2   # any platform with Node.js
   ```
 
 - **lychee** (optional, for link checks): see the
