@@ -32,12 +32,21 @@ Use `caveman-commit`, but always end with a `Co-Authored-By:` trailer naming
 the AI agent or model. Never include session links (remote control, web or
 cloud sessions, session share URLs) in commits or PRs.
 
+## Markdown
+
+Create and edit Markdown with the `markdown-editor` skill (from
+`skills/markdown-editor/`, installed as a dev skill; the CLI copies local
+sources, so after editing it run
+`npx skills experimental_install --force --agent <agent>`). Text for external
+tools (issue, PR and comment bodies) is out of its scope: draft it outside
+the repo, one line per paragraph.
+
 ## Checks
 
 No build or tests; CI runs only these:
 
 ```sh
-npx markdownlint-cli2 [file]   # lint, auto-fixes in place; wrap prose at 80
-lychee --no-progress .         # links; skip URLs via .lycheeignore
-npx skills add . --list        # skills discoverable (when skills/ changes)
+skills/markdown-editor/scripts/lint.sh [--fix] [file]  # lint; wrap prose at 80
+skills/markdown-editor/scripts/check-links.sh [file]   # links; .lycheeignore
+npx skills add . --list   # skills discoverable (when skills/ changes)
 ```
