@@ -1,8 +1,9 @@
 # CLI libraries
 
 Prefer the library the project already uses; otherwise pick the default (listed
-first) for the language. Helpers must honor [NO_COLOR](https://no-color.org)
-and disable color and prompts when output is not a TTY.
+first) for the language. Helpers must honor [NO_COLOR](https://no-color.org),
+disable color when the output stream isn't a TTY, and prompt only when
+stdin is a TTY.
 
 ## Python
 

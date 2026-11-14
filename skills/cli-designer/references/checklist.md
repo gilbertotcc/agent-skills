@@ -46,7 +46,8 @@ conventions (e.g. `--format json` instead of `--json`).
   user asked for.
 - Turn color off when the stream (stdout or stderr) isn't a TTY, when
   `NO_COLOR` is non-empty, when `TERM=dumb`, or with **(surface)**
-  `--no-color`.
+  `--no-color`. A non-empty `FORCE_COLOR` overrides the TTY and `TERM`
+  checks, but `--no-color` and `NO_COLOR` still win.
 - No animations or spinners when stdout isn't a TTY.
 - No internal-only details by default, and don't log to stderr at debug
   level by default.

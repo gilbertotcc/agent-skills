@@ -23,4 +23,6 @@ when it has network access, and otherwise uses the skill's bundled checklist.
 - The agent fetches `https://clig.dev/llms.txt`, if network access is
   available.
 - It runs your CLI only with harmless calls (`--help`, `--version`).
-- Nothing else leaves the machine.
+- Apart from the clig.dev fetch, the skill makes no network requests of its
+  own. Your CLI may still send data by itself, even for `--help` or
+  `--version`.
