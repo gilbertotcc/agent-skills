@@ -1,8 +1,9 @@
 # Setup
 
 Copy the starter configs from [assets/](../assets/) into the project root.
-Never overwrite an existing file, and skip a tool that already has any
-config:
+Never overwrite an existing file. Before copying anything, check once per
+tool whether it already has any config, and skip that tool's rows if so
+(copying `lychee.toml` must not make you skip `.lycheeignore`):
 
 | Asset                    | Target                                 | Skip if present               |
 | ------------------------ | -------------------------------------- | ----------------------------- |

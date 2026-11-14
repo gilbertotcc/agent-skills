@@ -46,7 +46,7 @@ No build; CI runs the equivalent of these:
 
 ```sh
 npx --yes markdownlint-cli2 [--fix]      # lint; wrap prose at 80
-lychee --no-progress --extensions md .   # links; .lycheeignore
+lychee --no-progress --hidden --extensions md .  # links; .lycheeignore
 npx skills add . --list   # skills discoverable (when skills/ changes)
 ```
 

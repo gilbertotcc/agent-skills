@@ -33,11 +33,13 @@ notes for the user) stays out:
 After each change to a project `.md` file, before calling the task done:
 
 ```sh
-npx --yes markdownlint-cli2 --no-globs --fix <file>  # 1. lint
-lychee --no-progress <file>                          # 2. links
+markdownlint-cli2 --no-globs --fix <file>  # 1. lint
+lychee --no-progress <file>                # 2. links
 ```
 
-1. **Lint.** `--no-globs` limits the run to the file. Exit 1 means issues
+1. **Lint.** `--no-globs` limits the run to the file. The tool reads
+   `<file>` as a glob: backslash-escape `* ? [ ] ( )` in it (e.g.
+   `docs/\[draft\].md`), and report a name with braces unlinted. Exit 1 means issues
    remain: each names a rule and line, which the
    [markdownlint rules](https://github.com/DavidAnson/markdownlint/blob/v0.42.1/doc/Rules.md)
    explain. Edit the content (don't disable the rule) and rerun until it
@@ -48,16 +50,20 @@ lychee --no-progress <file>                          # 2. links
 3. **Repeat** both steps if anything changed.
 
 If a tool is missing, tell the user what wasn't checked and point them to
-the skill's `README.md`. Install it yourself only when the user explicitly
-asks and no project or agent configuration (sandbox, permissions) blocks it.
+the skill's `README.md`. Install it, or run `npx --yes markdownlint-cli2`
+(which downloads it), only when the user explicitly asks and no project or
+agent configuration (sandbox, permissions) blocks it.
 
 ## Sweep the project
 
 ```sh
-npx --yes markdownlint-cli2 --fix                            # config has globs
-npx --yes markdownlint-cli2 --fix "**/*.md" "#node_modules"  # it doesn't
-lychee --no-progress --extensions md .
+markdownlint-cli2 --fix                            # config has globs
+markdownlint-cli2 --fix "**/*.md" "#node_modules"  # it doesn't
+lychee --no-progress --hidden --extensions md .
 ```
+
+`--hidden` includes dot-directories such as `.github`; the config's
+`exclude_path` still applies.
 
 Drop `--fix` to only report. If the config sets `fix: true`, every run
 fixes in place, so review the diff. Report files checked, issues fixed and

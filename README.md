@@ -47,7 +47,7 @@ npx skills add ./skills --agent claude-code
 
 ```sh
 npx --yes markdownlint-cli2              # add --fix to auto-fix
-lychee --no-progress --extensions md .
+lychee --no-progress --hidden --extensions md .
 npx skills add . --list   # every skill is discoverable
 ```
 
