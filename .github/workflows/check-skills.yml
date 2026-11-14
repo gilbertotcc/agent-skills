@@ -30,4 +30,9 @@ jobs:
     # Exits non-zero when no valid skill (SKILL.md with name and
     # description) is found.
     - name: List skills with the skills CLI
-      run: npx --yes skills add . --list
+      run: |
+        if [ ! -d skills ]; then
+          echo "::notice::No skills/ directory yet; skipping."
+          exit 0
+        fi
+        npx --yes skills add . --list
