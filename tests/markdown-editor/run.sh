@@ -154,7 +154,10 @@ test_symlinks() {
 # --fix sweep, check exit code, message, and that ../out.md was never written.
 try_config() {
   new_project cfg git
-  printf '%s' "$3" > ".markdownlint-cli2.$2"
+  # @OUTSIDE_ABS@ in a fixture stands for the absolute path of $OUTSIDE.
+  local abs
+  abs="$(cd "$(dirname "$OUTSIDE")" && pwd -P)/$(basename "$OUTSIDE")"
+  printf '%s' "${3//@OUTSIDE_ABS@/$abs}" > ".markdownlint-cli2.$2"
   bad_md in.md
   local sum
   sum=$(cksum < "$OUTSIDE")
@@ -180,8 +183,8 @@ test_globs() {
   try_config 'cjs, static safe' cjs $'module.exports = { globs: ["**/*.md"] };\n' 2 'cannot verify'
   try_config 'mjs, computed unsafe' mjs $'const s = [".." + "/out.md"];\nexport default { globs: s, fix: true };\n' 2 'cannot verify'
   try_config 'cjs, caller-dependent globs' cjs $'module.exports = { globs: process.argv[1] && process.argv[1].endsWith(".cjs") ? ["**/*.md"] : ["../out.md"], fix: true };\n' 2 'cannot verify'
-  try_config 'yaml space before absolute (quoted)' yaml $'globs: [ "/etc/*.md"]\nfix: true\n' 2 "$unsafe"
-  try_config 'yaml space before absolute (plain)' yaml $'globs: [ /tmp/outside.md]\nfix: true\n' 2 "$unsafe"
+  try_config 'yaml space before absolute (quoted)' yaml $'globs: [ "@OUTSIDE_ABS@"]\nfix: true\n' 2 "$unsafe"
+  try_config 'yaml space before absolute (plain)' yaml $'globs: [ @OUTSIDE_ABS@]\nfix: true\n' 2 "$unsafe"
   try_config 'jsonc space before tilde' jsonc $'{"globs":[ "~/x.md"],"fix":true}\n' 2 "$unsafe"
   try_config 'JSON unicode escape of ..' jsonc $'{"globs":["\\u002e\\u002e/out.md"],"fix":true}\n' 2 'cannot verify'
   try_config 'YAML hex escape of ..' yaml $'globs: ["\\x2e\\x2e/out.md"]\nfix: true\n' 2 'cannot verify'
