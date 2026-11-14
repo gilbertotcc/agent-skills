@@ -6,6 +6,7 @@ on:
     - '**/*.md'
     - '**/.markdownlint-cli2.yaml'
     - '.github/workflows/check-markdown.yml'
+    - 'skills/**/*.md'
     - .lycheeignore
     - lychee.toml
   push:
@@ -15,6 +16,7 @@ on:
     - '**/*.md'
     - '**/.markdownlint-cli2.yaml'
     - '.github/workflows/check-markdown.yml'
+    - 'skills/**/*.md'
     - .lycheeignore
     - lychee.toml
 

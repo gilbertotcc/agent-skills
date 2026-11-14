@@ -2,7 +2,8 @@ extensions = ["md"]
 
 exclude_loopback = true
 
+# Regular expressions, not globs.
 exclude_path = [
-  ".agents/**/*.md",
-  ".claude/**/*.md"
+  '(^|/)\.agents/',
+  '(^|/)\.claude/'
 ]

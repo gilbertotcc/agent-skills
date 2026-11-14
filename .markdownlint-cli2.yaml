@@ -13,7 +13,6 @@ config:
   MD040: false
   MD060:
     style: aligned
-fix: true
 gitignore: true
 globs:
   - "**/*.md"

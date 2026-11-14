@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
     - 'skills/**'
+    - 'tests/**'
     - '.github/workflows/check-skills.yml'
   push:
     branches:
     - 'main'
     paths:
     - 'skills/**'
+    - 'tests/**'
     - '.github/workflows/check-skills.yml'
 
 concurrency:
@@ -36,3 +38,18 @@ jobs:
           exit 0
         fi
         npx --yes skills add . --list
+
+  test-markdown-editor:
+    name: Test markdown-editor
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v7
+    - name: Set up Node.js
+      uses: actions/setup-node@v7
+      with:
+        node-version: lts/*
+    - name: Install markdownlint-cli2
+      run: npm install -g markdownlint-cli2
+    - name: Run markdown-editor tests
+      run: tests/markdown-editor/run.sh
