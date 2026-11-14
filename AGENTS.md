@@ -42,10 +42,14 @@ per paragraph.
 
 ## Checks
 
-No build or tests; CI runs the equivalent of these:
+No build; CI runs the equivalent of these:
 
 ```sh
 skills/markdown-editor/scripts/lint.sh [--fix] [file]  # lint; wrap prose at 80
 skills/markdown-editor/scripts/check-links.sh [file]   # links; .lycheeignore
 npx skills add . --list   # skills discoverable (when skills/ changes)
+tests/markdown-editor/run.sh   # script regression tests (needs node)
 ```
+
+Tests for a skill's scripts live in `tests/<skill>/`, outside `skills/`, so
+they don't ship with the skill. Add a case for every bug fixed.

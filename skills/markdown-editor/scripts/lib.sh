@@ -240,15 +240,16 @@ has_markdownlint_config() {
   return 1
 }
 
-# Print the `globs` entry (key and value) of an options file, comments removed;
-# nothing if it has none. Textual, so it covers JSONC, YAML and a literal list in
+# Print the entries of option KEY in an options file, comments removed; nothing
+# if it is absent. Textual, so it covers JSONC, YAML and literal values in
 # .cjs/.mjs. Comments (`#` after whitespace, `//`, `/* */`) are dropped and the
-# key is looked for outside quoted strings (the key itself may be quoted); a
-# `[...]` list may span lines, and otherwise the value is the indented/`-` block
-# that follows.
-# markdownlint_globs_entry FILE
-markdownlint_globs_entry() {
-  awk '
+# key is looked for outside quoted strings (the key itself may be bare or
+# quoted). With BLOCK=1 the first entry spans a `[...]` list over several lines,
+# or the indented/`-` block that follows; with BLOCK=0 every match is printed as
+# its single line.
+# markdownlint_option_entry FILE KEY BLOCK
+markdownlint_option_entry() {
+  awk -v key="$2" -v block="$3" '
     # Sets OUT (line without comments) and MASK (same, with the characters
     # inside quoted strings replaced by "x", so syntax can be matched safely).
     function scan(line,    i, n, c, q, str) {
@@ -265,8 +266,9 @@ markdownlint_globs_entry() {
             OUT = OUT substr(line, i + 1, 1); str = str "xx"; MASK = MASK "xx"; i++
           } else if (c == q) {
             q = ""
-            if (str == "xxxxx" && substr(OUT, length(OUT) - 5, 5) == "globs") {
-              MASK = substr(MASK, 1, length(MASK) - 6) "globs"  # the quoted key
+            if (length(str) == length(key) &&
+                substr(OUT, length(OUT) - length(key), length(key)) == key) {
+              MASK = substr(MASK, 1, length(MASK) - length(key) - 1) key  # quoted key
             } else MASK = MASK c
           } else { str = str "x"; MASK = MASK "x" }
           continue
@@ -280,8 +282,9 @@ markdownlint_globs_entry() {
     }
     { scan($0) }
     state == 0 {
-      if (MASK ~ /(^|[^[:alnum:]_.-])globs[ \t]*:/) {
+      if (MASK ~ ("(^|[^[:alnum:]_.-])" key "[ \t]*:")) {
         print OUT
+        if (!block) next
         if (MASK ~ /\[/) { if (MASK !~ /\]/) state = 1; else exit }
         else state = 2
       }
@@ -298,7 +301,7 @@ markdownlint_globs_entry() {
 markdownlint_config_selects_files() {
   local file entry
   file=$(markdownlint_options_file "$1") || return 1
-  entry=$(markdownlint_globs_entry "$file")
+  entry=$(markdownlint_option_entry "$file" globs 1)
   [ -n "$entry" ]
 }
 
@@ -312,22 +315,26 @@ glob_escapes_project() {
   esac
 }
 
-# Print the `globs` array that a .cjs/.mjs options file really exports, one per
-# line, by evaluating it with node (which markdownlint-cli2 needs anyway).
-# Fails if node or the file does not work, or if `globs` is not a string array.
-# markdownlint_js_globs FILE
-markdownlint_js_globs() {
+# Evaluate option KEY of a .cjs/.mjs options file with node (which
+# markdownlint-cli2 needs anyway). Prints nothing if the option is not set. KIND
+# "list": one string per line, failing (exit 3) unless it is an array of strings.
+# KIND "json": the value as one line of JSON. Also fails if node or the file
+# does not work.
+# markdownlint_js_option FILE KEY KIND
+markdownlint_js_option() {
   node -e '
     const url = require("url");
-    import(url.pathToFileURL(process.argv[1]).href).then(function (mod) {
-      const globs = (mod.default || mod).globs;
-      if (globs === undefined) return;
-      const ok = Array.isArray(globs) &&
-        globs.every(function (g) { return typeof g === "string"; });
+    const file = process.argv[1], key = process.argv[2], kind = process.argv[3];
+    import(url.pathToFileURL(file).href).then(function (mod) {
+      const value = (mod.default || mod)[key];
+      if (value === undefined) return;
+      if (kind === "json") { console.log(JSON.stringify(value)); return; }
+      const ok = Array.isArray(value) &&
+        value.every(function (v) { return typeof v === "string"; });
       if (!ok) process.exit(3);
-      globs.forEach(function (g) { console.log(g); });
+      value.forEach(function (v) { console.log(v); });
     }).catch(function () { process.exit(3); });
-  ' "$1"
+  ' "$1" "$2" "$3"
 }
 
 # Can the files the options file in DIR selects leave the project? Fails closed.
@@ -343,13 +350,13 @@ markdownlint_globs_check() {
   case "$file" in
     *.cjs | *.mjs)
       command -v node >/dev/null 2>&1 || return 2
-      globs=$(markdownlint_js_globs "$file") || return 2
+      globs=$(markdownlint_js_option "$file" globs list) || return 2
       while IFS= read -r glob; do
         if glob_escapes_project "$glob"; then return 1; fi
       done <<<"$globs"
       ;;
     *)
-      globs=$(markdownlint_globs_entry "$file")
+      globs=$(markdownlint_option_entry "$file" globs 1)
       if printf '%s\n' "$globs" | grep -Eq '(^|[[:space:],[-])\*[[:alpha:]_]'; then
         return 2 # an alias refers to a value defined elsewhere
       fi
@@ -361,13 +368,29 @@ markdownlint_globs_check() {
   esac
 }
 
-# True when the options file in DIR sets `fix: true`: markdownlint-cli2 then
-# fixes files in place even without --fix (the CLI cannot switch it off).
+# True unless the options file in DIR provably leaves `fix` off: markdownlint-cli2
+# then fixes files in place even without --fix (the CLI cannot switch it off).
+# Only a missing key or a literal `false` counts as off; any other value, a
+# computed one, or one that cannot be evaluated counts as on (fail closed).
 # markdownlint_config_autofixes DIR
 markdownlint_config_autofixes() {
-  local file
+  local file lines line value
   file=$(markdownlint_options_file "$1") || return 1
-  grep -Eq '(^|[^[:alnum:]_])"?fix"?[[:space:]]*:[[:space:]]*true' "$file"
+  case "$file" in
+    *.cjs | *.mjs)
+      value=$(markdownlint_js_option "$file" fix json) || return 0
+      [ -z "$value" ] || [ "$value" = false ] || return 0
+      ;;
+    *)
+      lines=$(markdownlint_option_entry "$file" fix 0)
+      while IFS= read -r line; do
+        [ -n "$line" ] || continue
+        value=$(printf '%s\n' "$line" | sed -E "s/^.*fix[\"']?[[:space:]]*:[[:space:]]*//; s/[,}].*\$//; s/[[:space:]]+\$//")
+        [ "$value" = false ] || return 0
+      done <<<"$lines"
+      ;;
+  esac
+  return 1
 }
 
 # lychee reads these from the working directory.

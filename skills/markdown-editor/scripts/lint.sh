@@ -3,7 +3,7 @@
 # markdownlint-cli2.
 #
 # Usage: lint.sh [--fix] [--] [file...]
-#   --fix     apply automatic fixes in place (a config with `fix: true` also
+#   --fix     apply automatic fixes in place (a config that enables `fix` also
 #             fixes without this flag; markdownlint-cli2 cannot override that)
 #   file...   lint only these files; with none, lint the whole project
 #
@@ -18,7 +18,7 @@
 #     a sweep lets its globs/ignores/gitignore pick the files, and explicit
 #     files it ignores print "skipped (ignored by config): <path>". A sweep is
 #     refused (exit 2) if a glob is absolute, starts with `~` or contains `..`;
-#     and, when it would write (--fix or config `fix: true`), if the globs
+#     and, when it would write (--fix or the config enables `fix`), if the globs
 #     cannot be verified (.cjs/.mjs are evaluated with node; a failure or a
 #     non-array refuses) or if any symlink to a Markdown file or directory
 #     anywhere in the project (except .git) points outside it.
@@ -232,7 +232,7 @@ main() {
   resolve_markdownlint || return 2
   mode=$(lint_mode "$PROJECT_ROOT")
   if [ "${#FIX_ARGS[@]}" -eq 0 ] && markdownlint_config_autofixes "$PROJECT_ROOT"; then
-    echo 'note: config sets fix: true, so fixable issues are fixed in place'
+    echo 'note: config enables fix, so fixable issues are fixed in place'
   fi
 
   if [ "${#FILES[@]}" -eq 0 ]; then
