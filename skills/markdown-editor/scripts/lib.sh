@@ -120,15 +120,19 @@ outside_symlink_target() {
   printf '%s\n' "$target"
 }
 
-# Print the Markdown symlinks under ROOT (relative, one per line) whose target
-# lies outside ROOT. Skips node_modules and .git.
+# Print the symlinks under ROOT (relative, one per line) that a Markdown tool
+# could follow out of the project: Markdown files and directories whose target
+# lies outside ROOT. Scans everything except .git, including node_modules and
+# dot-directories, because a tool config can select any path.
 # list_outside_symlinks ROOT
 list_outside_symlinks() {
   local rel
   while IFS= read -r -d '' rel; do
-    outside_symlink_target "$1" "${rel#./}" >/dev/null && printf '%s\n' "${rel#./}"
-  done < <(cd -- "$1" && find . \( -name node_modules -o -name .git \) -prune -o \
-    -type l \( -name '*.md' -o -name '*.markdown' \) -print0)
+    rel=${rel#./}
+    if [ -d "$1/$rel" ] || is_markdown_file "$rel"; then
+      outside_symlink_target "$1" "$rel" >/dev/null && printf '%s\n' "$rel"
+    fi
+  done < <(cd -- "$1" && find . -name .git -prune -o -type l -print0)
   return 0
 }
 
@@ -236,24 +240,55 @@ has_markdownlint_config() {
   return 1
 }
 
-# Print the `globs` entry (key and value) of an options file; nothing if it has
-# none. Textual, so it covers JSONC, YAML and a literal list in .cjs/.mjs: comment
-# lines are skipped, a `[...]` list may span lines, and otherwise the value is
-# the indented/`-` block that follows.
+# Print the `globs` entry (key and value) of an options file, comments removed;
+# nothing if it has none. Textual, so it covers JSONC, YAML and a literal list in
+# .cjs/.mjs. Comments (`#` after whitespace, `//`, `/* */`) are dropped and the
+# key is looked for outside quoted strings (the key itself may be quoted); a
+# `[...]` list may span lines, and otherwise the value is the indented/`-` block
+# that follows.
 # markdownlint_globs_entry FILE
 markdownlint_globs_entry() {
   awk '
-    /^[[:space:]]*(\/\/|\/\*|\*|#)/ { next }
+    # Sets OUT (line without comments) and MASK (same, with the characters
+    # inside quoted strings replaced by "x", so syntax can be matched safely).
+    function scan(line,    i, n, c, q, str) {
+      OUT = ""; MASK = ""; q = ""; n = length(line)
+      for (i = 1; i <= n; i++) {
+        c = substr(line, i, 1)
+        if (inblock) {
+          if (c == "*" && substr(line, i + 1, 1) == "/") { inblock = 0; i++ }
+          continue
+        }
+        if (q != "") {
+          OUT = OUT c
+          if (c == "\\" && q == "\"") {
+            OUT = OUT substr(line, i + 1, 1); str = str "xx"; MASK = MASK "xx"; i++
+          } else if (c == q) {
+            q = ""
+            if (str == "xxxxx" && substr(OUT, length(OUT) - 5, 5) == "globs") {
+              MASK = substr(MASK, 1, length(MASK) - 6) "globs"  # the quoted key
+            } else MASK = MASK c
+          } else { str = str "x"; MASK = MASK "x" }
+          continue
+        }
+        if (c == "\"" || c == "\047") { q = c; str = ""; OUT = OUT c; MASK = MASK c; continue }
+        if (c == "#" && (i == 1 || substr(line, i - 1, 1) ~ /[ \t]/)) break
+        if (c == "/" && substr(line, i + 1, 1) == "/") break
+        if (c == "/" && substr(line, i + 1, 1) == "*") { inblock = 1; i++; continue }
+        OUT = OUT c; MASK = MASK c
+      }
+    }
+    { scan($0) }
     state == 0 {
-      if ($0 ~ /(^|[^[:alnum:]_.-])globs[ \t"\047]*:/) {
-        print
-        if ($0 ~ /\[/) { if ($0 !~ /\]/) state = 1; else exit }
+      if (MASK ~ /(^|[^[:alnum:]_.-])globs[ \t]*:/) {
+        print OUT
+        if (MASK ~ /\[/) { if (MASK !~ /\]/) state = 1; else exit }
         else state = 2
       }
       next
     }
-    state == 1 { print; if ($0 ~ /\]/) exit; next }
-    state == 2 { if ($0 ~ /^([[:space:]]|-|$)/) print; else exit }
+    state == 1 { print OUT; if (MASK ~ /\]/) exit; next }
+    state == 2 { if (MASK ~ /^([[:space:]]|-|$)/) print OUT; else exit }
   ' "$1"
 }
 
@@ -267,14 +302,63 @@ markdownlint_config_selects_files() {
   [ -n "$entry" ]
 }
 
-# True when a `globs` pattern of the options file in DIR could reach outside
-# the project: absolute, starting with `~`, or containing `..` (also negated).
-# markdownlint_globs_unsafe DIR
-markdownlint_globs_unsafe() {
-  local file
-  file=$(markdownlint_options_file "$1") || return 1
-  markdownlint_globs_entry "$file" |
-    grep -Eq "\\.\\.|(['\"[,]|-[[:space:]]+|:[[:space:]]+)!?[/~]"
+# True when a single glob could reach outside the project: absolute, starting
+# with `~`, or containing `..` (also when negated).
+# glob_escapes_project GLOB
+glob_escapes_project() {
+  case "$1" in
+    *..* | /* | '~'* | '!/'* | '!~'*) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+# Print the `globs` array that a .cjs/.mjs options file really exports, one per
+# line, by evaluating it with node (which markdownlint-cli2 needs anyway).
+# Fails if node or the file does not work, or if `globs` is not a string array.
+# markdownlint_js_globs FILE
+markdownlint_js_globs() {
+  node -e '
+    const url = require("url");
+    import(url.pathToFileURL(process.argv[1]).href).then(function (mod) {
+      const globs = (mod.default || mod).globs;
+      if (globs === undefined) return;
+      const ok = Array.isArray(globs) &&
+        globs.every(function (g) { return typeof g === "string"; });
+      if (!ok) process.exit(3);
+      globs.forEach(function (g) { console.log(g); });
+    }).catch(function () { process.exit(3); });
+  ' "$1"
+}
+
+# Can the files the options file in DIR selects leave the project? Fails closed.
+#   0  all `globs` stay inside
+#   1  a glob is absolute, starts with `~` or contains `..`
+#   2  cannot tell: node missing, config not evaluable, or a YAML alias
+# YAML/JSONC are read as text (they cannot compute values); .cjs/.mjs are
+# evaluated so computed globs are checked too.
+# markdownlint_globs_check DIR
+markdownlint_globs_check() {
+  local file globs glob
+  file=$(markdownlint_options_file "$1") || return 0
+  case "$file" in
+    *.cjs | *.mjs)
+      command -v node >/dev/null 2>&1 || return 2
+      globs=$(markdownlint_js_globs "$file") || return 2
+      while IFS= read -r glob; do
+        if glob_escapes_project "$glob"; then return 1; fi
+      done <<<"$globs"
+      ;;
+    *)
+      globs=$(markdownlint_globs_entry "$file")
+      if printf '%s\n' "$globs" | grep -Eq '(^|[[:space:],[-])\*[[:alpha:]_]'; then
+        return 2 # an alias refers to a value defined elsewhere
+      fi
+      if printf '%s\n' "$globs" |
+        grep -Eq "\\.\\.|(['\"[,]|-[[:space:]]+|:[[:space:]]+)!?[/~]"; then
+        return 1
+      fi
+      ;;
+  esac
 }
 
 # True when the options file in DIR sets `fix: true`: markdownlint-cli2 then

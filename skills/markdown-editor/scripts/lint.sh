@@ -17,8 +17,11 @@
 #     (.markdownlint-cli2.{jsonc,yaml,cjs,mjs}), the config is authoritative:
 #     a sweep lets its globs/ignores/gitignore pick the files, and explicit
 #     files it ignores print "skipped (ignored by config): <path>". A sweep is
-#     refused (exit 2) if a glob is absolute, starts with `~` or contains `..`,
-#     or, when fixing, if a Markdown symlink points outside the project.
+#     refused (exit 2) if a glob is absolute, starts with `~` or contains `..`;
+#     and, when it would write (--fix or config `fix: true`), if the globs
+#     cannot be verified (.cjs/.mjs are evaluated with node; a failure or a
+#     non-array refuses) or if any symlink to a Markdown file or directory
+#     anywhere in the project (except .git) points outside it.
 #   - Otherwise the files are enumerated here: a sweep lints tracked and
 #     unignored *.md files (git), or every *.md/*.markdown except in
 #     node_modules and dot-directories (no git); gitignored explicit files print
@@ -118,19 +121,26 @@ will_fix() {
   [ "${#FIX_ARGS[@]}" -gt 0 ] || markdownlint_config_autofixes "$PROJECT_ROOT"
 }
 
-# A config sweep hands file selection to the config, so make sure it cannot
-# reach outside the project. Prints an error and returns 2 if it could.
+# A config sweep hands file selection to markdownlint-cli2, so make sure that
+# selection cannot reach outside the project. Fails closed: when this run
+# writes (see will_fix), anything not provably contained is refused with exit 2.
 check_config_sweep_is_contained() {
-  local links
-  if markdownlint_globs_unsafe "$PROJECT_ROOT"; then
-    err "config globs must stay inside the project (no absolute, ~ or .. patterns): $(markdownlint_options_file "$PROJECT_ROOT")"
+  local rc=0 links file
+  file=$(markdownlint_options_file "$PROJECT_ROOT")
+  markdownlint_globs_check "$PROJECT_ROOT" || rc=$?
+  if [ "$rc" -eq 1 ]; then
+    err "config globs must stay inside the project (no absolute, ~ or .. patterns): $file"
     return 2
   fi
   will_fix || return 0
+  if [ "$rc" -eq 2 ]; then
+    err "cannot verify the globs of $file (computed, aliased, or not evaluable with node); refusing to fix. Use a literal globs list, or lint explicit files"
+    return 2
+  fi
   links=$(list_outside_symlinks "$PROJECT_ROOT")
   if [ -n "$links" ]; then
-    err 'refusing to fix: Markdown symlinks point outside the project:'
-    printf '  %s\n' "$links" >&2
+    err 'refusing to fix: symlinks to Markdown files or directories point outside the project:'
+    printf '%s\n' "$links" | sed 's/^/  /' >&2
     return 2
   fi
 }

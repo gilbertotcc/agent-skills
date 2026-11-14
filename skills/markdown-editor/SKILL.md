@@ -82,10 +82,11 @@ scripts/check-links.sh
 With a config, the config's `globs` and `ignores` (markdownlint-cli2) and
 `exclude_path` / `.lycheeignore` (lychee) choose the files; without one,
 git-tracked and unignored `.md` files, or outside git every `.md` file
-except under `node_modules` and dot-directories. A config with `fix: true` makes
-every run fix in place (the script prints a `note:`); review the diff.
-Report files checked, issues fixed and issues left, then fix the rest as in
-the workflow.
+except under `node_modules` and dot-directories. Files change only with
+`--fix`, unless the project's config sets `fix: true`: then every run fixes
+in place (the script prints a `note:`), so review the diff. Report files
+checked, issues fixed and issues left, then fix the rest as in the
+workflow.
 
 ## Set up linting and link checks
 
@@ -117,6 +118,8 @@ Beyond what the linter enforces:
 - Tag fenced code blocks with their language (```` ```sh ````,
   ```` ```json ````) unless the config disables MD040.
 - Use relative links for files in the same repository.
+- Keep each emphasized span (`*...*`, `**...**`) on one line when
+  wrapping prose; move the line break before or after it.
 - Cite sources with the project's own convention (agent instructions such
   as `AGENTS.md`, contributing docs, existing files); if it has none, follow
   [references/citations.md](references/citations.md).
@@ -130,3 +133,12 @@ Read that rule's entry in the
 [markdownlint rules](https://github.com/DavidAnson/markdownlint/blob/v0.42.1/doc/Rules.md)
 for what it expects, then edit the line: split long sentences, fix heading levels,
 add the missing blank line or language tag.
+
+## References
+
+- [markdownlint rules](https://github.com/DavidAnson/markdownlint/blob/v0.42.1/doc/Rules.md):
+  what each reported rule expects.
+- [markdownlint-cli2 configuration](https://github.com/DavidAnson/markdownlint-cli2/tree/v0.24.1#configuration):
+  config files, `globs`, `ignores`, `fix`.
+- [lychee: excluding links](https://lychee.cli.rs/recipes/excluding-links/):
+  `.lycheeignore` and `exclude_path`.
