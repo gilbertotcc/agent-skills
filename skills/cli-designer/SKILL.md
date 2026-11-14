@@ -20,11 +20,12 @@ three modes: **design** a command, **validate** a CLI, **suggest** commands.
 
 When sources disagree, the higher one wins:
 
-1. **Project guidelines.** Look for CLI rules in `AGENTS.md`, `CLAUDE.md`,
-   `CONTRIBUTING.md` or `docs/` (e.g. `docs/cli-guidelines.md`), and follow
-   any links they give. A project rule replaces the clig.dev rule it
-   contradicts. Apply it in the project's own form: if the project uses
-   `--format json`, never propose `--json`.
+1. **Project guidelines.** Find the CLI rules the project already writes
+   down. Check its agent instructions, contributing guide and design or
+   style docs, search its documentation for terms like "CLI", "command
+   line" or "flags", and follow the links they give. A project rule replaces
+   the clig.dev rule it contradicts. Apply it in the project's own form: if
+   the project uses `--format json`, never propose `--json`.
 2. **clig.dev, read live.** Before you deliver, read the live sections behind
    your decisions or findings, once per task. Don't read the whole file:
    `llms.txt` is about 72 KB. The section headings are `The Basics`, `Help`,
