@@ -1,6 +1,6 @@
 # Broken links
 
-How to handle a link `scripts/check-links.sh` reports as unreachable.
+How to handle a link lychee reports as unreachable.
 
 1. **Recheck it.** Open the URL with a web fetch tool, if the agent has one,
    or `curl -sIL <url>`, to tell a dead link from a flaky host.
@@ -26,4 +26,4 @@ How to handle a link `scripts/check-links.sh` reports as unreachable.
    user (`git config user.name`), agent, model, tool and today's date; the
    committed comment contains no angle-bracket placeholders.
 4. **No ignore mechanism?** Tell the user the link stays broken and suggest
-   `scripts/setup.sh`, which adds a `.lycheeignore`.
+   adding the starter `.lycheeignore` (see [setup.md](setup.md)).
