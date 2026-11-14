@@ -88,7 +88,7 @@ for prompts.
 
 ## Shell (POSIX sh/Bash)
 
-- [`getopts`](https://www.gnu.org/software/bash/manual/html_node/Bourne-Shell-Builtins.html):
+- [`getopts`](https://man7.org/linux/man-pages/man1/getopts.1p.html):
   default; built-in, portable short options only; handle `--help` and
   `--version` by hand. Move to another language when subcommands, typed
   options or completion are needed.
