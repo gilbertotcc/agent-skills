@@ -183,6 +183,12 @@ test_globs() {
   try_config 'cjs globs not an array' cjs $'module.exports = { globs: "**/*.md" };\n' 2 'cannot verify'
   try_config 'JSON unicode escape of ..' jsonc $'{"globs":["\\u002e\\u002e/out.md"],"fix":true}\n' 2 'cannot verify'
   try_config 'YAML hex escape of ..' yaml $'globs: ["\\x2e\\x2e/out.md"]\nfix: true\n' 2 'cannot verify'
+  try_config 'duplicate globs key (jsonc)' jsonc $'{"globs":["**/*.md"],"globs":["../out.md"],"fix":true}\n' 2 'cannot verify'
+  try_config 'nested decoy globs before the real one' jsonc $'{"config":{"globs":["a.md"]},"globs":["../out.md"],"fix":true}\n' 2 'cannot verify'
+  try_config 'duplicate globs key (yaml)' yaml $'globs: ["**/*.md"]\nglobs: ["../out.md"]\nfix: true\n' 2 'cannot verify'
+  try_config 'escaped key plus decoy' jsonc $'{"config":{"globs":[]},"\\u0067lobs":["../out.md"],"fix":true}\n' 2 'cannot verify'
+  try_config 'key split from its colon (list mode)' jsonc $'{"globs"\n:["../out.md"],"fix":true}\n' 0
+  try_config 'yaml merge key' yaml $'x: &g {globs: ["../out.md"]}\n<<: *g\nglobs: ["**/*.md"]\nfix: true\n' 2 'cannot verify'
   try_config 'yaml alias' yaml $'x: &g ["../out.md"]\nglobs: *g\n' 2 'cannot verify'
 }
 
@@ -195,7 +201,7 @@ try_guard() {
   ln -s "$OUTSIDE" link.md
   run lint.sh
   check "$1: sweep refused" rc_is 2
-  check "$1: names the cause" out_has 'point outside the project'
+  check "$1: suggests explicit files" out_has 'Lint explicit files instead'
   run lint.sh --fix
   check "$1: --fix sweep refused" rc_is 2
   check "$1: outside untouched" is_untouched "$OUTSIDE"

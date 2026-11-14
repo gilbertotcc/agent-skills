@@ -130,7 +130,7 @@ check_config_sweep_is_contained() {
     err "config globs must stay inside the project (no absolute, ~ or .. patterns): $file. $hint"
     return 2
   elif [ "$rc" -eq 2 ]; then
-    err "cannot verify the globs of $file (computed, aliased, escaped, or not evaluable with node). $hint"
+    err "cannot verify the globs of $file (computed, aliased, escaped, duplicated, or not evaluable with node). $hint"
     return 2
   fi
   links=$(list_outside_symlinks "$PROJECT_ROOT")

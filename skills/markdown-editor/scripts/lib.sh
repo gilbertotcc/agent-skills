@@ -246,7 +246,7 @@ has_markdownlint_config() {
 # key is looked for outside quoted strings (the key itself may be bare or
 # quoted). With BLOCK=1 the first entry spans a `[...]` list over several lines,
 # or the indented/`-` block that follows; with BLOCK=0 every match is printed as
-# its single line.
+# its single line; with BLOCK=2 the whole file is printed, comments removed.
 # markdownlint_option_entry FILE KEY BLOCK
 markdownlint_option_entry() {
   awk -v key="$2" -v block="$3" '
@@ -281,6 +281,7 @@ markdownlint_option_entry() {
       }
     }
     { scan($0) }
+    block == 2 { print OUT; next }
     state == 0 {
       if (MASK ~ ("(^|[^[:alnum:]_.-])" key "[ \t]*:")) {
         print OUT
@@ -336,13 +337,14 @@ markdownlint_js_globs() {
 # Can the files the options file in DIR selects leave the project? Fails closed.
 #   0  all `globs` stay inside
 #   1  a glob is absolute, starts with `~` or contains `..`
-#   2  cannot tell: node missing, config not evaluable, a YAML alias, or a
-#      backslash escape in a YAML/JSONC string
+#   2  cannot tell: node missing, config not evaluable, or a YAML/JSONC file
+#      whose text could differ from what the parser sees (duplicate or nested
+#      `globs`, backslash escapes, aliases, merges)
 # YAML/JSONC are read as text (they cannot compute values); .cjs/.mjs are
 # evaluated so computed globs are checked too.
 # markdownlint_globs_check DIR
 markdownlint_globs_check() {
-  local file globs glob
+  local file globs glob text
   file=$(markdownlint_options_file "$1") || return 0
   case "$file" in
     *.cjs | *.mjs)
@@ -353,11 +355,16 @@ markdownlint_globs_check() {
       done <<<"$globs"
       ;;
     *)
-      globs=$(markdownlint_option_entry "$file" globs 1)
-      # A backslash escape (\u002e, \x2e) or an alias hides the real value.
-      if printf '%s\n' "$globs" | grep -Eq '\\|(^|[[:space:],[-])\*[[:alpha:]_]'; then
+      # The text view of the top-level `globs` must be the parser's. Refuse
+      # when it might not be: a second `globs` anywhere (JSONC keeps the last
+      # duplicate; a nested one can hide the real one), a backslash escape
+      # (\u002e, \x2e, an escaped key), a YAML alias or `<<` merge.
+      text=$(markdownlint_option_entry "$file" globs 2)
+      if [ "$(printf '%s\n' "$text" | grep -o globs | wc -l)" -ne 1 ] ||
+        printf '%s\n' "$text" | grep -Eq '\\|<<|(^|[[:space:],[-])\*[[:alpha:]_]'; then
         return 2
       fi
+      globs=$(markdownlint_option_entry "$file" globs 1)
       if printf '%s\n' "$globs" |
         grep -Eq "\\.\\.|(['\"[,]|-[[:space:]]+|:[[:space:]]+)!?[/~]"; then
         return 1
