@@ -1,28 +1,35 @@
 #!/usr/bin/env bash
-# lint.sh - lint (and optionally fix) the repository's Markdown files with
+# lint.sh - lint (and optionally fix) a project's Markdown files with
 # markdownlint-cli2.
 #
 # Usage: lint.sh [--fix] [--] [file...]
 #   --fix     apply automatic fixes in place (a config with `fix: true` also
 #             fixes without this flag; markdownlint-cli2 cannot override that)
-#   file...   lint only these files; with none, lint the whole repository
+#   file...   lint only these files; with none, lint the whole project
 #
-# Scope (only files that belong to the git repository are ever touched):
-#   - Runs inside the git work tree of the current directory, or else of the
-#     given files. Paths outside it are reported and left alone, even with
-#     --fix: "skipped (not a repository file): <path>".
-#   - If a markdownlint-cli2 options file at the repo root defines `globs`
+# Project: the git work tree of the current directory; else the nearest parent
+# directory with a markdownlint or lychee config (never $HOME or /); else the
+# current directory. Only files inside it are ever touched: other paths print
+# "skipped (not a project file): <path>", even with --fix.
+#
+# Scope:
+#   - If a markdownlint-cli2 options file at the project root defines `globs`
 #     (.markdownlint-cli2.{jsonc,yaml,cjs,mjs}), the config is authoritative:
 #     a sweep lets its globs/ignores/gitignore pick the files, and explicit
-#     files it ignores print "skipped (ignored by config): <path>".
-#   - Otherwise git decides: a sweep lints tracked and unignored *.md files;
-#     gitignored explicit files print "skipped (not a repository file)".
-#     Rule-only configs (.markdownlint.*) still apply to the files linted.
+#     files it ignores print "skipped (ignored by config): <path>". A sweep is
+#     refused (exit 2) if a glob is absolute, starts with `~` or contains `..`,
+#     or, when fixing, if a Markdown symlink points outside the project.
+#   - Otherwise the files are enumerated here: a sweep lints tracked and
+#     unignored *.md files (git), or every *.md/*.markdown except in
+#     node_modules and dot-directories (no git); gitignored explicit files print
+#     "skipped (not a project file)". Rule-only configs (.markdownlint.*) and
+#     `ignores` in an options file still apply to the files linted.
+#   - Markdown symlinks pointing outside the project are never linted.
 #
 # markdownlint-cli2 is taken from PATH, else run through `npx --yes`.
 #
 # Exit codes: 0 clean or nothing to lint, 1 lint issues remain,
-#             2 usage or environment error (not a git repo, no tool, ...).
+#             2 usage or environment error (no tool, unsafe config, ...).
 
 set -euo pipefail
 
@@ -42,10 +49,19 @@ source "$SCRIPT_DIR/lib.sh"
 
 # --- markdownlint-cli2 invocation ---------------------------------------------
 
-# markdownlint-cli2 treats path arguments as globs: make metacharacters literal.
-escape_glob() { printf '%s\n' "$1" | sed 's/[][*?{}()!#]/\\&/g'; }
+# markdownlint-cli2 treats path arguments as globs: make metacharacters literal
+# with bracket classes (backslashes do not work for braces; `!` and `#` only
+# matter at the start, where a `./` prefix defuses them).
+escape_glob() {
+  local escaped
+  escaped=$(printf '%s\n' "$1" | sed 's/[*?[{}()]/[&]/g')
+  case "$escaped" in
+    '!'* | '#'*) printf './%s\n' "$escaped" ;;
+    *) printf '%s\n' "$escaped" ;;
+  esac
+}
 
-# Set GLOB_ARGS to the escaped form of the given repo-relative paths.
+# Set GLOB_ARGS to the escaped form of the given project-relative paths.
 to_glob_args() {
   local path
   GLOB_ARGS=()
@@ -54,14 +70,14 @@ to_glob_args() {
 
 # Run markdownlint-cli2 with the given args (FIX_ARGS is prepended). Sets:
 #   MDL_RC     tool exit code
-#   MDL_FILES  number of files it actually linted
+#   MDL_FILES  number of files it linted; EMPTY when unknown (the tool prints no
+#              "Linting:" line with `noProgress: true`), which is not zero
 #   MDL_OUT    its findings, without the banner/summary noise
 run_markdownlint() {
   local out rc=0
   out=$("${MDL_CMD[@]}" ${FIX_ARGS[@]+"${FIX_ARGS[@]}"} "$@" 2>&1) || rc=$?
   MDL_RC=$rc
   MDL_FILES=$(printf '%s\n' "$out" | sed -n 's/^Linting: \([0-9][0-9]*\) file.*/\1/p')
-  MDL_FILES=${MDL_FILES:-0}
   if [ "$rc" -gt 1 ]; then
     MDL_OUT=$out # tool or config error: show everything
   else
@@ -80,33 +96,57 @@ report_markdownlint() {
   esac
 }
 
+# report_clean COUNT   (COUNT empty when unknown)
 report_clean() {
-  if [ "$1" -eq 0 ]; then
-    echo 'ok: nothing to lint'
-  else
-    echo "ok: $1 file(s) clean"
-  fi
+  case "$1" in
+    '') echo 'ok: no issues' ;;
+    0) echo 'ok: nothing to lint' ;;
+    *) echo "ok: $1 file(s) clean" ;;
+  esac
 }
 
 # --- scope modes ---------------------------------------------------------------
 
-# "config" when the repo's markdownlint-cli2 options say what to lint,
-# otherwise "git".
+# "config" when the project's markdownlint-cli2 options say what to lint,
+# otherwise "list" (we enumerate the files).
 lint_mode() {
-  if markdownlint_config_selects_files "$1"; then echo config; else echo git; fi
+  if markdownlint_config_selects_files "$1"; then echo config; else echo list; fi
 }
 
-# Lint the whole repository (from the repo root).
+# True when this run will modify files.
+will_fix() {
+  [ "${#FIX_ARGS[@]}" -gt 0 ] || markdownlint_config_autofixes "$PROJECT_ROOT"
+}
+
+# A config sweep hands file selection to the config, so make sure it cannot
+# reach outside the project. Prints an error and returns 2 if it could.
+check_config_sweep_is_contained() {
+  local links
+  if markdownlint_globs_unsafe "$PROJECT_ROOT"; then
+    err "config globs must stay inside the project (no absolute, ~ or .. patterns): $(markdownlint_options_file "$PROJECT_ROOT")"
+    return 2
+  fi
+  will_fix || return 0
+  links=$(list_outside_symlinks "$PROJECT_ROOT")
+  if [ -n "$links" ]; then
+    err 'refusing to fix: Markdown symlinks point outside the project:'
+    printf '  %s\n' "$links" >&2
+    return 2
+  fi
+}
+
+# Lint the whole project (from the project root).
 sweep() {
   if [ "$1" = config ]; then
+    check_config_sweep_is_contained || return $?
     run_markdownlint # no path args: the config's globs/ignores apply
   else
-    collect_git_files "$REPO_ROOT"
-    if [ "${#GIT_FILES[@]}" -eq 0 ]; then
+    collect_project_files "$PROJECT_ROOT"
+    if [ "${#PROJECT_FILES[@]}" -eq 0 ]; then
       report_clean 0
       return 0
     fi
-    to_glob_args "${GIT_FILES[@]}"
+    to_glob_args "${PROJECT_FILES[@]}"
     run_markdownlint --no-globs -- "${GLOB_ARGS[@]}"
   fi
   report_markdownlint || return $?
@@ -114,12 +154,13 @@ sweep() {
 }
 
 # Lint one kept file on its own; it may turn out to be ignored by the config.
-# lint_one ARG REL   (ARG as the user wrote it, REL relative to the repo root)
+# lint_one ARG REL   (ARG as the user wrote it, REL relative to the project root)
 lint_one() {
   local rc=0
   to_glob_args "$2"
   run_markdownlint --no-globs -- "${GLOB_ARGS[@]}"
-  if [ "$MDL_FILES" -eq 0 ] && [ "$MDL_RC" -le 1 ]; then
+  # Only an explicit "Linting: 0 files" means ignored; unknown is not zero.
+  if [ "$MDL_FILES" = 0 ] && [ "$MDL_RC" -le 1 ]; then
     skipped 'ignored by config' "$1"
     return 0
   fi
@@ -139,14 +180,15 @@ lint_each() {
   return "$rc"
 }
 
-# Lint the kept explicit files (KEPT_ARG/KEPT_REL, from the repo root).
+# Lint the kept explicit files (KEPT_ARG/KEPT_REL, from the project root).
 lint_files() {
   [ "${#KEPT_REL[@]}" -gt 0 ] || return 0
   to_glob_args "${KEPT_REL[@]}"
-  # One run for all files. Only if the tool dropped some (ignored by config)
-  # re-run per file to say which; fixes are idempotent, so this is safe.
+  # One run for all files. Only if the tool reports fewer files than given
+  # (some ignored by config) re-run per file to say which; fixes are
+  # idempotent, so this is safe.
   run_markdownlint --no-globs -- "${GLOB_ARGS[@]}"
-  if [ "$MDL_FILES" -ne "${#KEPT_REL[@]}" ] && [ "$MDL_RC" -le 1 ]; then
+  if [ -n "$MDL_FILES" ] && [ "$MDL_FILES" -ne "${#KEPT_REL[@]}" ] && [ "$MDL_RC" -le 1 ]; then
     lint_each
     return
   fi
@@ -176,23 +218,20 @@ main() {
   local mode rc=0
   parse_args "$@" || return $?
 
-  if ! resolve_repo_root ${FILES[@]+"${FILES[@]}"}; then
-    err 'not in a git repository, nothing linted'
-    return 2
-  fi
+  resolve_project_root || return 2
   resolve_markdownlint || return 2
-  mode=$(lint_mode "$REPO_ROOT")
-  if [ "${#FIX_ARGS[@]}" -eq 0 ] && markdownlint_config_autofixes "$REPO_ROOT"; then
+  mode=$(lint_mode "$PROJECT_ROOT")
+  if [ "${#FIX_ARGS[@]}" -eq 0 ] && markdownlint_config_autofixes "$PROJECT_ROOT"; then
     echo 'note: config sets fix: true, so fixable issues are fixed in place'
   fi
 
   if [ "${#FILES[@]}" -eq 0 ]; then
-    cd -- "$REPO_ROOT"
+    cd -- "$PROJECT_ROOT"
     sweep "$mode" || rc=$?
   else
     # Resolve the user's paths before changing directory.
-    select_explicit_files "$REPO_ROOT" "$mode" "${FILES[@]}" || return $?
-    cd -- "$REPO_ROOT"
+    select_explicit_files "$PROJECT_ROOT" "$mode" "${FILES[@]}" || return $?
+    cd -- "$PROJECT_ROOT"
     lint_files || rc=$?
   fi
   return "$rc"

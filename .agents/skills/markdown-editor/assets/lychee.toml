@@ -1,7 +1,0 @@
-# Starter lychee config from the markdown-editor skill; adjust to the repository's style.
-extensions = ["md"]
-
-exclude_loopback = true
-
-# Paths to skip, e.g. vendored docs:
-# exclude_path = ["vendor/**/*.md"]

@@ -7,10 +7,11 @@ How to handle a link `scripts/check-links.sh` reports as unreachable.
 2. **Replace a dead link.** Search the web for the same content at a working
    URL (a moved page, an archived copy, a pinned tag) and swap it in.
 3. **Exclude a link that works but fails the check** (auth wall, rate limit,
-   bot blocking) only after the user confirms. Add it to the repository's
+   bot blocking) only after the user confirms. Add it to the project's
    lychee ignore mechanism, usually `.lycheeignore` or `exclude` in
-   `lychee.toml` ([lychee contributors]), with a dated comment saying who
-   verified access, in one of these forms:
+   `lychee.toml` (see
+   [excluding links](https://lychee.cli.rs/recipes/excluding-links/)), with
+   a dated comment saying who verified access, in one of these forms:
 
    ```text
    # Access to the URL was manually verified by <git user>. (Last access: YYYY-MM-DD)
@@ -26,10 +27,3 @@ How to handle a link `scripts/check-links.sh` reports as unreachable.
    committed comment contains no angle-bracket placeholders.
 4. **No ignore mechanism?** Tell the user the link stays broken and suggest
    `scripts/setup.sh`, which adds a `.lycheeignore`.
-
-## References
-
-[lychee contributors] lychee contributors. *Excluding links*. lychee
-documentation.
-
-[lychee contributors]: https://lychee.cli.rs/recipes/excluding-links/

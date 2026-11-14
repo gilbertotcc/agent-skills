@@ -6,11 +6,6 @@
       "sourceType": "github",
       "skillPath": "skills/caveman-commit/SKILL.md",
       "computedHash": "2c1472fb59eedd3cfba0b6512dc470a00287343ade421db55c21a6fb52afbe86"
-    },
-    "markdown-editor": {
-      "source": "./skills",
-      "sourceType": "local",
-      "computedHash": "597b86a323f872362fd0d5c72e726d4c469fc52bb45906a999019ab4f51a81c9"
     }
   }
 }

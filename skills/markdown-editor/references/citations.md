@@ -1,36 +1,43 @@
 # Citations
 
-Default citation rules, adapted from ([Taccari, 2026]), for repositories
-with no convention of their own. They follow APA 7 with an open-world tone:
-state what things do, and add a negation only where it prevents a likely
-misreading.
+Default rules for repositories with no citation convention of their own.
+Match the weight of the citation to the source, and keep an open-world
+tone: state what things do, adding a negation only where it prevents a
+likely misreading.
 
-- Cite inline where the claim appears, as `([Author, Year])`, a shortcut
-  reference link. When the year is unknown, omit it in both the citation and
-  the reference (`([Author])`) instead of writing "n.d.". Disambiguate the
-  same author and year with letters (`[Author, 2026a]`).
-- End the document with a `## References` section listing only cited
-  sources, alphabetically, each as `[Author, Year] <APA 7 reference>`,
-  followed by the link definitions `[Author, Year]: <url>`.
-- Link pinned versions (tags, commits, DOIs) where they exist.
-- Date decisions and results.
+## Web pages, docs, repositories and software
 
-Example:
+Link the source inline, where the claim appears, with descriptive link
+text. Point to a pinned version (a tag or commit) when one exists, so the
+link keeps saying what it said. A reference list and publication years are
+unnecessary here.
 
 ```markdown
-Style comes from markdownlint-cli2 ([Anson, 2026]).
-
-## References
-
-[Anson, 2026] Anson, D. (2026). *markdownlint-cli2* (Version 0.24.1)
-[Computer software]. GitHub.
-
-[Anson, 2026]: https://github.com/DavidAnson/markdownlint-cli2/tree/v0.24.1
+Style comes from the [markdownlint-cli2 configuration](https://github.com/DavidAnson/markdownlint-cli2/tree/v0.24.1#configuration).
 ```
 
+## Publications
+
+For articles, papers, books, standards and reports, use APA 7:
+
+- cite inline as `([Author, Year])`, a shortcut reference link; when the
+  year is unknown, omit it (`([Author])`) instead of writing "n.d.", and
+  tell same-author, same-year sources apart with letters (`2026a`);
+- end the document with a `## References` section listing only the cited
+  publications, alphabetically, each as `[Author, Year] <APA 7 reference>`,
+  followed by the link definitions `[Author, Year]: <url>`;
+- link the DOI where there is one.
+
+```markdown
+Readers skim headings first ([Nielsen, 2006]).
+
 ## References
 
-[Taccari, 2026] Taccari, G. (2026). *Markdown rules* [Agent rules file].
-transcribe, GitHub.
+[Nielsen, 2006] Nielsen, J. (2006). *F-shaped pattern for reading web
+content*. Nielsen Norman Group.
 
-[Taccari, 2026]: https://github.com/gilbertotcc/transcribe/blob/9aec2f22ff3ac8f721edd866cd5391205de18ecf/.claude/rules/markdown.md
+[Nielsen, 2006]: https://www.nngroup.com/articles/f-shaped-pattern-reading-web-content-discovered/
+```
+
+A document that cites both kinds lists only the publications under
+`## References`; web sources stay as inline links.

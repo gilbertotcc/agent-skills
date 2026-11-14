@@ -6,7 +6,7 @@ on:
     - '**/*.md'
     - '**/.markdownlint-cli2.yaml'
     - '.github/workflows/check-markdown.yml'
-    - 'skills/markdown-editor/scripts/**'
+    - 'skills/**/*.md'
     - .lycheeignore
     - lychee.toml
   push:
@@ -16,7 +16,7 @@ on:
     - '**/*.md'
     - '**/.markdownlint-cli2.yaml'
     - '.github/workflows/check-markdown.yml'
-    - 'skills/markdown-editor/scripts/**'
+    - 'skills/**/*.md'
     - .lycheeignore
     - lychee.toml
 
@@ -31,15 +31,8 @@ jobs:
     steps:
     - name: Checkout repository
       uses: actions/checkout@v7
-    - name: Set up Node.js
-      uses: actions/setup-node@v7
-      with:
-        node-version: lts/*
     - name: Run markdownlint-cli2
-      run: skills/markdown-editor/scripts/lint.sh
-    # The repo config sets `fix: true`, so the sweep fixes issues silently.
-    - name: Fail on auto-fixable issues
-      run: git diff --exit-code
+      uses: DavidAnson/markdownlint-cli2-action@v25.0.0
 
   check-urls:
     name: Check links

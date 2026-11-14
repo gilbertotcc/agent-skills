@@ -1,7 +1,9 @@
-# Starter lychee config from the markdown-editor skill; adjust to the repository's style.
+# Starter lychee config from the markdown-editor skill; adjust to the project's style.
 extensions = ["md"]
 
 exclude_loopback = true
 
-# Paths to skip, e.g. vendored docs:
-# exclude_path = ["vendor/**/*.md"]
+# Paths to skip. Entries are regular expressions matched against the path, not
+# globs: '(^|/)vendor/' works, 'vendor/**/*.md' does not. Directory sweeps
+# already skip dot-directories such as .github or .agents.
+# exclude_path = ['(^|/)vendor/']
