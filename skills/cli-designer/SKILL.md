@@ -20,59 +20,70 @@ three modes: **design** a command, **validate** a CLI, **suggest** commands.
 
 When sources disagree, the higher one wins:
 
-1. **Project guidelines.** Look for CLI rules in, or linked from,
-   `AGENTS.md`, `CLAUDE.md`, `CONTRIBUTING*` or `docs/` (e.g.
-   `docs/cli-guidelines.md`). Where a project rule conflicts with clig.dev,
-   follow the project and say so.
-2. **clig.dev, read live.** `https://clig.dev/llms.txt` is about 72 KB, so
-   read only the sections the task needs. Headings are `### <Name>`, e.g.
-   `Output`, `Errors`, `Arguments and flags`, `Interactivity`,
-   `Subcommands`, `Configuration`, `Environment variables`:
+1. **Project guidelines.** Look for CLI rules in `AGENTS.md`, `CLAUDE.md`,
+   `CONTRIBUTING.md` or `docs/` (e.g. `docs/cli-guidelines.md`), and follow
+   any links they give. A project rule replaces the clig.dev rule it
+   contradicts. Apply it in the project's own form: if the project uses
+   `--format json`, never propose `--json`.
+2. **clig.dev, read live.** Before you deliver, read the live sections behind
+   your decisions or findings, once per task. Don't read the whole file:
+   `llms.txt` is about 72 KB. The section headings are `The Basics`, `Help`,
+   `Documentation`, `Output`, `Errors`, `Arguments and flags`,
+   `Interactivity`, `Subcommands`, `Robustness`, `Future-proofing`,
+   `Signals and control characters`, `Configuration`,
+   `Environment variables`, `Naming`, `Distribution` and `Analytics`:
 
    ```sh
-   curl -sL https://clig.dev/llms.txt |
-     awk '/^### (Output|Errors)/{p=1;print;next} /^##+ /{p=0} p'
+   curl -sL https://clig.dev/llms.txt | awk '/^## /{g=($0 ~ /^## Guidelines/)}
+     g && /^### (Output|Errors)( \{|$)/{p=1;print;next} /^##+ /{p=0} p'
    ```
 
-   A web-fetch tool works too.
+   Replace `Output|Errors` with the sections you need.
 3. **Bundled checklist.** [references/checklist.md](references/checklist.md)
-   is the list to walk through, and the fallback when the live guidelines
-   can't be read. If that happens, tell the user.
+   is the list to walk through, and the fallback when clig.dev can't be read.
+   If clig.dev can't be read, tell the user.
 
-Cite the source of each rule you apply (project file, clig.dev section, or
-checklist). Don't restate clig.dev from memory.
+Tag each rationale item and each finding with its source: `[project]`, or
+`[clig: <section>]` if you read it live, else `[checklist: <section>]`.
+Never rely on clig.dev from memory.
 
 ## Before any mode
 
-- Map the existing command tree: run `<cli> --help` (and the same per
-  subcommand) if the tool is built and the call is harmless, or read the
-  command definitions in the code.
+- Map the command tree. Run the bare CLI, then `<cli> --help` and
+  `<cli> <cmd> --help` for each subcommand, or read the command definitions
+  in the code. Run only harmless calls. A crash is a finding, not a blocker.
 - Identify the parsing library from the manifest (`pyproject.toml`,
-  `go.mod`, `Cargo.toml`, `package.json`, `pom.xml`, `*.csproj`, `Gemfile`)
-  and match its patterns and the CLI's existing naming.
+  `go.mod`, `Cargo.toml`, `package.json`, `pom.xml`, `*.csproj`, `Gemfile`).
+  Note the CLI's existing conventions: command order, flag names, output
+  format flag and exit codes. They win over the checklist's defaults.
 - If the project has no CLI yet, propose a library from
   [references/libraries.md](references/libraries.md).
 
 ## Design a command
 
-1. Work out what the operation needs: inputs, outputs, side effects, and
-   whether it is destructive or slow.
+1. Work out what the operation needs: inputs, outputs, side effects, data it
+   relies on, and how bad it is if it goes wrong. Severity, from the
+   checklist's Arguments and flags section: mild, moderate or severe.
 2. Decide the interface, using the checklist sections Arguments and flags,
    Subcommands, Output and Interactivity:
-   - the name and its place in the tree (keep the existing `noun verb` or
-     `verb noun` order and verb set);
-   - flags over positional arguments, standard flag names, and a long form
-     for every flag;
-   - the stdout/stderr split, `--json` or `--plain`, and exit codes;
-   - confirmation, `--force`, `--dry-run` and `--no-input` for destructive
-     or interactive commands;
-   - how secrets get in (a file or stdin, never a flag or env var), and
-     config precedence.
+   - the name and its place in the tree, keeping the existing order and
+     verb set;
+   - flags over positional arguments, standard or existing flag names, and a
+     long form for every flag;
+   - the stdout/stderr split, the machine-readable output flag, and exit
+     codes (reuse existing ones; otherwise 0 ok, 1 error, 2 usage, and a
+     distinct code for each specific failure, such as not found);
+   - confirmation scaled to severity, plus `--force`, `--dry-run` and
+     `--no-input` where they apply;
+   - how secrets get in (a file or stdin, never a flag or env var).
 3. Deliver:
    - a synopsis;
    - draft `--help` text that starts with examples;
-   - exit codes;
-   - a short rationale citing the rules behind non-obvious choices.
+   - behavior: streams, prompts, JSON shape, exit codes;
+   - companion changes: existing commands affected, and the undo or
+     inverse command;
+   - open questions, e.g. missing data fields;
+   - a short rationale, with tags.
 
    Implement it only when the user asks, in the project's library.
 
@@ -80,27 +91,35 @@ checklist). Don't restate clig.dev from memory.
 
 1. Scope the review: the diff, the commands the user names, or the whole
    CLI when asked. Check the change itself, not the codebase in general.
-2. Walk each checklist section against it. Where possible, observe real
-   behavior with harmless calls only: `--help`, `--version`, no arguments,
-   piping to `cat` (color and animation off), and checking which stream
-   errors go to. Never run commands that change state.
-3. Report, grouped by section, most severe first:
-   - **Fail**: `file:line` (or the command run), what is wrong, the rule
-     broken and where it comes from, and a suggested fix;
-   - **N/A**: a whole section that doesn't apply, with one line on why;
-   - passing items: don't list them.
+2. Walk each checklist section against it. Observe real behavior with
+   harmless calls only: `--help`, `--version`, no arguments, a typo, piping
+   to `cat` (color and animation off), and checking which stream errors go
+   to. Never run commands that change state. If a call is blocked or
+   unsafe, read the code instead.
+3. Report findings ordered by severity across all sections:
+   - **High**: security, data loss, or broken scripting (secrets in flags,
+     errors that exit `0`, prompts with no TTY);
+   - **Medium**: wrong streams, missing machine output, inconsistent names
+     or flags, crashes on bad input;
+   - **Low**: help text, polish.
+
+   Each finding gives `file:line` (or the command run), the problem, the
+   tagged rule, and a fix. Merge findings that share a root cause or a fix.
+   End with one line listing N/A sections and why. Don't list passes.
 
 ## Suggest commands
 
 1. Inventory the commands, flags and env vars the CLI has.
-2. Compare them with the checklist's **(surface)** items and with
-   consistency gaps, e.g. a noun missing a verb its siblings have
-   (`list`/`get`/`create`/`delete`), a flag named differently across
-   commands, or no machine-readable output.
-3. Deliver a prioritized list. Each item has a synopsis, the reason with
-   its rule, and the effort (flag only, new command, or breaking change).
-   Mark breaking changes and suggest a deprecation path (see
-   Future-proofing).
+2. Compare them with the checklist's **(surface)** items, translated into
+   the project's conventions, and with consistency gaps: a noun missing a
+   verb its siblings have (`list`/`get`/`create`/`delete`), a flag named
+   differently across commands, or no machine-readable output.
+3. Deliver at most about 10 items, ordered security, then correctness, then
+   consistency, then convenience. Each item gives a synopsis, the reason
+   with its tag, and its kind: flag, new command, behavior fix, or breaking
+   change. For breaking changes, give a deprecation path (see
+   Future-proofing). Mention defects you notice in one line each, and offer
+   a validation.
 
 ## Boundaries
 
@@ -112,13 +131,10 @@ checklist). Don't restate clig.dev from memory.
 ## Example
 
 Request: "Add a way to delete a bookmark" to a CLI with
-`bookmarks list|get`.
+`bookmarks list|get [--json]`.
 
 ````text
 Synopsis: mycli bookmarks delete <id>... [--force] [--dry-run] [--json]
-
-Delete one or more bookmarks.
-
 Examples:
   mycli bookmarks delete 42
   mycli bookmarks list --json | jq -r '.[].id' | mycli bookmarks delete -
@@ -126,11 +142,9 @@ Examples:
 Options:
   -f, --force     Don't ask for confirmation (required without a TTY)
   -n, --dry-run   Show what would be deleted
-      --json      Print deleted IDs as JSON
-  -h, --help      Show this help
+      --json      Print deleted IDs as JSON (same flag as list/get)
 
-Exit codes: 0 deleted, 1 error, 2 usage error, 3 not found
-Rationale: noun-verb like its siblings (Subcommands); asks y/N for a
-moderate remote deletion, --force for scripts (Arguments and flags);
-`-` reads IDs from stdin (Arguments and flags).
+Behavior: y/N prompt on stderr; IDs on stdout; exit 0/1/2, 3 not found.
+Rationale: noun-verb like its siblings [clig: Subcommands]; moderate
+deletion asks y/N, --force for scripts [clig: Arguments and flags].
 ````

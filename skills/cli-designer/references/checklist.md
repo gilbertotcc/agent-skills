@@ -7,9 +7,10 @@ guidelines for the reasoning behind an item, and let a project's own CLI
 guidelines override any item here.
 
 Items marked **(surface)** are commands, flags or variables a CLI is expected
-to have. Use them when suggesting missing commands.
+to have. Use them when suggesting missing commands, renamed to the project's
+conventions (e.g. `--format json` instead of `--json`).
 
-## [Basics](https://clig.dev/#the-basics)
+## [The Basics](https://clig.dev/#the-basics)
 
 - Use an argument-parsing library (see [libraries.md](libraries.md)).
 - Exit `0` on success and non-zero on failure. Use distinct codes for distinct
@@ -71,8 +72,15 @@ to have. Use them when suggesting missing commands.
 - The default is the right choice for most users.
 - Prompt for missing input, but never *require* a prompt: every prompt has a
   flag equivalent.
-- Confirm dangerous actions, scaled to severity: `y/N` for moderate actions,
-  typing the resource name for severe ones. **(surface)** `-f`/`--force`
+- Confirm dangerous actions, scaled to severity:
+  - *mild*: a small local change, such as deleting one file. A prompt is
+    optional.
+  - *moderate*: a bigger local change, a remote change, or a bulk change
+    that is hard to undo. Ask `y/N`.
+  - *severe*: deleting something complex, such as a whole app or server.
+    Make the user type its name.
+
+  **(surface)** `-f`/`--force`
   skips the confirmation in scripts. **(surface)** `-n`/`--dry-run` for
   risky changes.
 - Accept `-` as a file argument to mean stdin or stdout.
@@ -115,7 +123,7 @@ to have. Use them when suggesting missing commands.
   must be explicit and stable.
 - No time bombs: don't depend on external services that may disappear.
 
-## [Signals](https://clig.dev/#signals)
+## [Signals and control characters](https://clig.dev/#signals)
 
 - On Ctrl-C, say so right away and exit fast, with a timeout on cleanup. A
   second Ctrl-C skips cleanup.
