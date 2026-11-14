@@ -22,6 +22,7 @@ npx skills add gilbertotcc/agent-skills --skill <name>  # one skill
 
 | Skill                                      | Description                                                                         |
 | ------------------------------------------ | ----------------------------------------------------------------------------------- |
+| [cli-designer](skills/cli-designer/)       | Design, validate and extend CLIs following the Command Line Interface Guidelines.   |
 | [markdown-editor](skills/markdown-editor/) | Write and edit repository Markdown in its own markdownlint-cli2 style; check links. |
 
 ## Development
