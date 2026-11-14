@@ -18,6 +18,10 @@ on:
     - .lycheeignore
     - lychee.toml
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   lint-markdown:
     name: Lint Markdown
@@ -27,16 +31,16 @@ jobs:
       uses: actions/checkout@v7
     - name: Run markdownlint-cli2
       uses: DavidAnson/markdownlint-cli2-action@v25.0.0
-  
+
   check-urls:
     name: Check links
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v7
-      - name: Link Checker
-        uses: lycheeverse/lychee-action@v2.9.0
-        with:
-          args: "--no-progress --timeout 30 --max-concurrency 10 ."
-          fail: true
-          failIfEmpty: false
+    - name: Checkout repository
+      uses: actions/checkout@v7
+    - name: Link Checker
+      uses: lycheeverse/lychee-action@v2.9.0
+      with:
+        args: "--no-progress --timeout 30 --max-concurrency 10 ."
+        fail: true
+        failIfEmpty: false

@@ -37,4 +37,5 @@ No build or tests; CI runs only these:
 ```sh
 npx markdownlint-cli2 [file]   # lint, auto-fixes in place; wrap prose at 80
 lychee --no-progress .         # links; skip URLs via .lycheeignore
+npx skills add . --list        # skills discoverable (when skills/ changes)
 ```
