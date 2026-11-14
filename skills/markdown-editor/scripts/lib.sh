@@ -336,7 +336,8 @@ markdownlint_js_globs() {
 # Can the files the options file in DIR selects leave the project? Fails closed.
 #   0  all `globs` stay inside
 #   1  a glob is absolute, starts with `~` or contains `..`
-#   2  cannot tell: node missing, config not evaluable, or a YAML alias
+#   2  cannot tell: node missing, config not evaluable, a YAML alias, or a
+#      backslash escape in a YAML/JSONC string
 # YAML/JSONC are read as text (they cannot compute values); .cjs/.mjs are
 # evaluated so computed globs are checked too.
 # markdownlint_globs_check DIR
@@ -353,8 +354,9 @@ markdownlint_globs_check() {
       ;;
     *)
       globs=$(markdownlint_option_entry "$file" globs 1)
-      if printf '%s\n' "$globs" | grep -Eq '(^|[[:space:],[-])\*[[:alpha:]_]'; then
-        return 2 # an alias refers to a value defined elsewhere
+      # A backslash escape (\u002e, \x2e) or an alias hides the real value.
+      if printf '%s\n' "$globs" | grep -Eq '\\|(^|[[:space:],[-])\*[[:alpha:]_]'; then
+        return 2
       fi
       if printf '%s\n' "$globs" |
         grep -Eq "\\.\\.|(['\"[,]|-[[:space:]]+|:[[:space:]]+)!?[/~]"; then

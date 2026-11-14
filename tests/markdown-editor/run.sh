@@ -156,10 +156,12 @@ try_config() {
   new_project cfg git
   printf '%s' "$3" > ".markdownlint-cli2.$2"
   bad_md in.md
+  local sum
+  sum=$(cksum < "$OUTSIDE")
   run lint.sh --fix
   check "$1: exit $4" rc_is "$4"
   [ -z "${5:-}" ] || check "$1: message" out_has "$5"
-  check "$1: outside untouched" is_untouched "$OUTSIDE"
+  check "$1: outside untouched" test "$sum" = "$(cksum < "$OUTSIDE")"
 }
 
 test_globs() {
@@ -179,6 +181,8 @@ test_globs() {
   try_config 'computed mjs, unsafe' mjs $'const s = [".." + "/out.md"];\nexport default { globs: s };\n' 2 "$unsafe"
   try_config 'cjs that throws' cjs $'throw new Error("x");\nmodule.exports = { globs: ["a.md"], fix: true };\n' 2 'cannot verify'
   try_config 'cjs globs not an array' cjs $'module.exports = { globs: "**/*.md" };\n' 2 'cannot verify'
+  try_config 'JSON unicode escape of ..' jsonc $'{"globs":["\\u002e\\u002e/out.md"],"fix":true}\n' 2 'cannot verify'
+  try_config 'YAML hex escape of ..' yaml $'globs: ["\\x2e\\x2e/out.md"]\nfix: true\n' 2 'cannot verify'
   try_config 'yaml alias' yaml $'x: &g ["../out.md"]\nglobs: *g\n' 2 'cannot verify'
 }
 
@@ -203,7 +207,7 @@ test_sweep_guard() {
   try_guard 'fix false' yaml $'globs: ["**/*.md"]\nfix: false\n'
   try_guard 'no fix key' yaml $'globs: ["**/*.md"]\n'
   try_guard 'quoted fix key' jsonc $'{ "globs": ["**/*.md"], "fix": true }\n'
-  try_guard 'escaped JSON fix key' jsonc $'{ "globs": ["**/*.md"], "\\u0066ix": true }\n'
+  try_guard 'escaped JSON fix key' jsonc $'{\n  "globs": ["**/*.md"],\n  "\\u0066ix": true\n}\n'
   try_guard 'escaped YAML fix key' yaml $'globs: ["**/*.md"]\n"\\x66ix": true\n'
   try_guard 'computed fix (cjs)' cjs $'module.exports = { globs: ["**/*.md"], fix: Boolean(1) };\n'
   try_guard 'computed fix (mjs)' mjs $'export default { globs: ["**/*.md"], fix: 1 === 1 };\n'
