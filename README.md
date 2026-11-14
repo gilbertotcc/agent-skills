@@ -20,9 +20,9 @@ npx skills add gilbertotcc/agent-skills --skill <name>  # one skill
 
 ### Skills
 
-| Skill | Description    |
-| ----- | -------------- |
-| —     | No skills yet. |
+| Skill                                      | Description                                                                         |
+| ------------------------------------------ | ----------------------------------------------------------------------------------- |
+| [markdown-editor](skills/markdown-editor/) | Write and edit repository Markdown in its own markdownlint-cli2 style; check links. |
 
 ## Development
 
@@ -46,8 +46,8 @@ npx skills add ./skills --agent claude-code
 ## Quality checks
 
 ```sh
-npx markdownlint-cli2
-lychee .
+skills/markdown-editor/scripts/lint.sh          # add --fix to auto-fix
+skills/markdown-editor/scripts/check-links.sh
 npx skills add . --list   # every skill is discoverable
 ```
 
