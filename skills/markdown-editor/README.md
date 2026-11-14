@@ -13,9 +13,29 @@ bound for external tools, such as issue or PR bodies, stays out of scope.
 npx skills add gilbertotcc/agent-skills --skill markdown-editor
 ```
 
-## Requirements and data use
+## Requirements
 
-- markdownlint-cli2 on PATH, or Node.js with `npx` (the first run
-  downloads it from npm).
-- Optional lychee for link checks; it sends a request to every URL it checks.
+Install these yourself; the agent never installs tools, it reports what is
+missing.
+
+- **markdownlint-cli2** (required): install [Node.js](https://nodejs.org/)
+  and `npx` runs it with no further step, or install it globally:
+
+  ```sh
+  npm install -g markdownlint-cli2
+  ```
+
+- **lychee** (optional, for link checks): see the
+  [lychee installation guide](https://lychee.cli.rs/guides/getting-started/),
+  e.g.
+
+  ```sh
+  brew install lychee    # macOS
+  cargo install lychee   # any platform with Rust
+  ```
+
+## Data use
+
+- Through `npx`, the first run downloads markdownlint-cli2 from npm.
+- lychee sends a request to every URL it checks.
 - No accounts or environment variables; nothing else leaves the machine.

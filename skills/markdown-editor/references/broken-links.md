@@ -26,4 +26,4 @@ How to handle a link lychee reports as unreachable.
    user (`git config user.name`), agent, model, tool and today's date; the
    committed comment contains no angle-bracket placeholders.
 4. **No ignore mechanism?** Tell the user the link stays broken and suggest
-   adding the starter `.lycheeignore` (see the skill's setup section).
+   adding the starter `.lycheeignore` (see [setup.md](setup.md)).
