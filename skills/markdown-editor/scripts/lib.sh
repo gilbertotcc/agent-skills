@@ -315,26 +315,22 @@ glob_escapes_project() {
   esac
 }
 
-# Evaluate option KEY of a .cjs/.mjs options file with node (which
-# markdownlint-cli2 needs anyway). Prints nothing if the option is not set. KIND
-# "list": one string per line, failing (exit 3) unless it is an array of strings.
-# KIND "json": the value as one line of JSON. Also fails if node or the file
-# does not work.
-# markdownlint_js_option FILE KEY KIND
-markdownlint_js_option() {
+# Print the `globs` array that a .cjs/.mjs options file really exports, one per
+# line, by evaluating it with node (which markdownlint-cli2 needs anyway). Fails
+# if node or the file does not work, or if `globs` is not an array of strings.
+# markdownlint_js_globs FILE
+markdownlint_js_globs() {
   node -e '
     const url = require("url");
-    const file = process.argv[1], key = process.argv[2], kind = process.argv[3];
-    import(url.pathToFileURL(file).href).then(function (mod) {
-      const value = (mod.default || mod)[key];
-      if (value === undefined) return;
-      if (kind === "json") { console.log(JSON.stringify(value)); return; }
-      const ok = Array.isArray(value) &&
-        value.every(function (v) { return typeof v === "string"; });
+    import(url.pathToFileURL(process.argv[1]).href).then(function (mod) {
+      const globs = (mod.default || mod).globs;
+      if (globs === undefined) return;
+      const ok = Array.isArray(globs) &&
+        globs.every(function (g) { return typeof g === "string"; });
       if (!ok) process.exit(3);
-      value.forEach(function (v) { console.log(v); });
+      globs.forEach(function (g) { console.log(g); });
     }).catch(function () { process.exit(3); });
-  ' "$1" "$2" "$3"
+  ' "$1"
 }
 
 # Can the files the options file in DIR selects leave the project? Fails closed.
@@ -350,7 +346,7 @@ markdownlint_globs_check() {
   case "$file" in
     *.cjs | *.mjs)
       command -v node >/dev/null 2>&1 || return 2
-      globs=$(markdownlint_js_option "$file" globs list) || return 2
+      globs=$(markdownlint_js_globs "$file") || return 2
       while IFS= read -r glob; do
         if glob_escapes_project "$glob"; then return 1; fi
       done <<<"$globs"
@@ -368,28 +364,21 @@ markdownlint_globs_check() {
   esac
 }
 
-# True unless the options file in DIR provably leaves `fix` off: markdownlint-cli2
-# then fixes files in place even without --fix (the CLI cannot switch it off).
-# Only a missing key or a literal `false` counts as off; any other value, a
-# computed one, or one that cannot be evaluated counts as on (fail closed).
+# Best effort, for an informational note only (never for safety): does the root
+# options file in DIR enable `fix`, so markdownlint-cli2 fixes in place even
+# without --fix? Textual: a missing key or a literal `false` counts as off; any
+# other literal value counts as on. Cannot see computed values, escaped keys or
+# nested options files.
 # markdownlint_config_autofixes DIR
 markdownlint_config_autofixes() {
   local file lines line value
   file=$(markdownlint_options_file "$1") || return 1
-  case "$file" in
-    *.cjs | *.mjs)
-      value=$(markdownlint_js_option "$file" fix json) || return 0
-      [ -z "$value" ] || [ "$value" = false ] || return 0
-      ;;
-    *)
-      lines=$(markdownlint_option_entry "$file" fix 0)
-      while IFS= read -r line; do
-        [ -n "$line" ] || continue
-        value=$(printf '%s\n' "$line" | sed -E "s/^.*fix[\"']?[[:space:]]*:[[:space:]]*//; s/[,}].*\$//; s/[[:space:]]+\$//")
-        [ "$value" = false ] || return 0
-      done <<<"$lines"
-      ;;
-  esac
+  lines=$(markdownlint_option_entry "$file" fix 0)
+  while IFS= read -r line; do
+    [ -n "$line" ] || continue
+    value=$(printf '%s\n' "$line" | sed -E "s/^.*fix[\"']?[[:space:]]*:[[:space:]]*//; s/[,}].*\$//; s/[[:space:]]+\$//")
+    [ "$value" = false ] || return 0
+  done <<<"$lines"
   return 1
 }
 

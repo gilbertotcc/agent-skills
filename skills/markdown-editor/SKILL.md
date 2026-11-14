@@ -64,9 +64,10 @@ After each change to a project `.md` file, before calling the task done:
 3. **Repeat** both steps if anything changed.
 
 Exit 2 from either script is a usage or environment error (e.g. neither
-markdownlint-cli2 nor npx available, or a config selecting files outside
-the project): relay its message and install hint to the user instead of
-treating the check as passed.
+markdownlint-cli2 nor npx available, or a sweep refused because the config
+or a symlink reaches outside the project): relay its message to the user
+instead of treating the check as passed; for a refused sweep, lint the
+files explicitly.
 
 ## Sweep the project
 

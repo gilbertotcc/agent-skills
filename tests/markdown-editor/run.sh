@@ -120,7 +120,8 @@ test_symlinks() {
   check 'refusal names the symlink' out_has 'link.md'
   check 'sweep refusal: target untouched' is_untouched "$OUTSIDE"
   run lint.sh
-  check 'read-only sweep still allowed' rc_is 1
+  check 'read-only config sweep refused too' rc_is 2
+  check 'read-only refusal suggests explicit files' out_has 'Lint explicit files instead'
 
   rm link.md; mkdir node_modules; ln -s ../"$OUTSIDE" node_modules/link.md
   printf 'globs: [":node_modules/link.md"]\n' > .markdownlint-cli2.yaml
@@ -181,40 +182,56 @@ test_globs() {
   try_config 'yaml alias' yaml $'x: &g ["../out.md"]\nglobs: *g\n' 2 'cannot verify'
 }
 
-# try_fix NAME EXT CONTENT EXPECT   run a plain sweep (no --fix) next to an
-# outside symlink: EXPECT "refused" when the config effectively enables fix.
-try_fix() {
-  new_project fix git
+# try_guard NAME EXT CONTENT   a config sweep next to an outside symlink is
+# refused whatever the config says about `fix` (escaped, computed, quoted, ...),
+# with or without --fix: safety does not depend on detecting `fix`.
+try_guard() {
+  new_project guard git
   printf '%s' "$3" > ".markdownlint-cli2.$2"
   ln -s "$OUTSIDE" link.md
   run lint.sh
-  if [ "$4" = refused ]; then
-    check "$1: refused" rc_is 2
-    check "$1: names the cause" out_has 'refusing to fix'
-  else
-    check "$1: not refused" out_lacks 'refusing to fix'
-  fi
+  check "$1: sweep refused" rc_is 2
+  check "$1: names the cause" out_has 'point outside the project'
+  run lint.sh --fix
+  check "$1: --fix sweep refused" rc_is 2
   check "$1: outside untouched" is_untouched "$OUTSIDE"
 }
 
-test_effective_fix() {
-  GROUP=fix
-  try_fix 'bare true' yaml $'globs: ["**/*.md"]\nfix: true\n' refused
-  try_fix 'quoted key (yaml)' yaml $'globs: ["**/*.md"]\n\'fix\': true\n' refused
-  try_fix 'quoted key (jsonc)' jsonc $'{ "globs": ["**/*.md"], "fix": true }\n' refused
-  try_fix 'non-boolean value' yaml $'globs: ["**/*.md"]\nfix: "false"\n' refused
-  try_fix 'computed cjs' cjs $'module.exports = { globs: ["**/*.md"], fix: Boolean(1) };\n' refused
-  try_fix 'computed mjs' mjs $'export default { globs: ["**/*.md"], fix: 1 === 1 };\n' refused
-  try_fix 'unevaluable cjs' cjs $'throw 1;\nmodule.exports = { globs: ["**/*.md"] };\n' refused
-  try_fix 'false' yaml $'globs: ["**/*.md"]\nfix: false\n' ok
-  try_fix 'quoted false' jsonc $'{ "globs": ["**/*.md"], "fix": false }\n' ok
-  try_fix 'false, true in a comment' yaml $'globs: ["**/*.md"]\nfix: false # fix: true\n' ok
-  try_fix 'no fix key' yaml $'globs: ["**/*.md"]\n' ok
-  try_fix 'computed false' cjs $'module.exports = { globs: ["**/*.md"], fix: false };\n' ok
+test_sweep_guard() {
+  GROUP=guard
+  try_guard 'fix true' yaml $'globs: ["**/*.md"]\nfix: true\n'
+  try_guard 'fix false' yaml $'globs: ["**/*.md"]\nfix: false\n'
+  try_guard 'no fix key' yaml $'globs: ["**/*.md"]\n'
+  try_guard 'quoted fix key' jsonc $'{ "globs": ["**/*.md"], "fix": true }\n'
+  try_guard 'escaped JSON fix key' jsonc $'{ "globs": ["**/*.md"], "\\u0066ix": true }\n'
+  try_guard 'escaped YAML fix key' yaml $'globs: ["**/*.md"]\n"\\x66ix": true\n'
+  try_guard 'computed fix (cjs)' cjs $'module.exports = { globs: ["**/*.md"], fix: Boolean(1) };\n'
+  try_guard 'computed fix (mjs)' mjs $'export default { globs: ["**/*.md"], fix: 1 === 1 };\n'
+
+  # A nested options file can turn fix on for its directory (markdownlint-cli2
+  # applies it), which the root config does not show.
+  new_project nested git
+  printf 'globs: ["**/*.md"]\n' > .markdownlint-cli2.yaml
+  mkdir docs; printf 'fix: true\n' > docs/.markdownlint-cli2.yaml
+  ln -s ../"$OUTSIDE" docs/link.md; bad_md docs/d.md; bad_md a.md
+  run lint.sh
+  check 'nested fix: config sweep refused' rc_is 2
+  check 'nested fix: sweep left files alone' is_untouched docs/d.md
+  check 'nested fix: outside untouched' is_untouched "$OUTSIDE"
+  run lint.sh --fix docs/link.md docs/d.md
+  check 'nested fix, explicit: outside symlink skipped' out_has 'skipped (not a project file): docs/link.md'
+  check 'nested fix, explicit: outside untouched' is_untouched "$OUTSIDE"
+  check 'nested fix, explicit: project file fixed' is_fixed docs/d.md
+
+  rm .markdownlint-cli2.yaml; bad_md docs/d.md
+  run lint.sh
+  check 'nested fix, list mode: outside symlink skipped' out_has 'skipped (not a project file): docs/link.md'
+  check 'nested fix, list mode: outside untouched' is_untouched "$OUTSIDE"
+  check 'nested fix, list mode: project file fixed' is_fixed docs/d.md
 
   new_project fix-explicit git
   printf 'globs: ["**/*.md"]\nfix: true\n' > .markdownlint-cli2.yaml
-  ln -s "$OUTSIDE" link.md; bad_md a.md
+  bad_md a.md
   run lint.sh a.md
   check 'explicit file with config fix: fixed' is_fixed a.md
   check 'explicit file with config fix: note shown' out_has 'note: config enables fix'
@@ -343,7 +360,7 @@ test_setup() {
 test_scope
 test_symlinks
 test_globs
-test_effective_fix
+test_sweep_guard
 test_special_names
 test_no_progress
 test_no_git

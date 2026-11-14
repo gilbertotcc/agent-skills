@@ -17,11 +17,12 @@
 #     (.markdownlint-cli2.{jsonc,yaml,cjs,mjs}), the config is authoritative:
 #     a sweep lets its globs/ignores/gitignore pick the files, and explicit
 #     files it ignores print "skipped (ignored by config): <path>". A sweep is
-#     refused (exit 2) if a glob is absolute, starts with `~` or contains `..`;
-#     and, when it would write (--fix or the config enables `fix`), if the globs
-#     cannot be verified (.cjs/.mjs are evaluated with node; a failure or a
-#     non-array refuses) or if any symlink to a Markdown file or directory
-#     anywhere in the project (except .git) points outside it.
+#     refused (exit 2), fixing or not, because it may write through a config
+#     `fix` that cannot be reliably detected: if a glob is absolute, starts with
+#     `~` or contains `..`; if the globs cannot be verified (.cjs/.mjs are
+#     evaluated with node; a failure or a non-array refuses); or if any symlink
+#     to a Markdown file or directory anywhere in the project (except .git)
+#     points outside it. Lint explicit files instead.
 #   - Otherwise the files are enumerated here: a sweep lints tracked and
 #     unignored *.md files (git), or every *.md/*.markdown except in
 #     node_modules and dot-directories (no git); gitignored explicit files print
@@ -116,30 +117,25 @@ lint_mode() {
   if markdownlint_config_selects_files "$1"; then echo config; else echo list; fi
 }
 
-# True when this run will modify files.
-will_fix() {
-  [ "${#FIX_ARGS[@]}" -gt 0 ] || markdownlint_config_autofixes "$PROJECT_ROOT"
-}
-
-# A config sweep hands file selection to markdownlint-cli2, so make sure that
-# selection cannot reach outside the project. Fails closed: when this run
-# writes (see will_fix), anything not provably contained is refused with exit 2.
+# A config sweep hands file selection to markdownlint-cli2, and it may also
+# write (a root, nested or computed `fix` setting cannot be reliably detected).
+# So it only runs when nothing it can select leaves the project, whether or not
+# it fixes; otherwise exit 2 and the caller lints explicit files instead.
 check_config_sweep_is_contained() {
-  local rc=0 links file
+  local rc=0 links file hint
   file=$(markdownlint_options_file "$PROJECT_ROOT")
+  hint='Lint explicit files instead: lint.sh [--fix] <file>...'
   markdownlint_globs_check "$PROJECT_ROOT" || rc=$?
   if [ "$rc" -eq 1 ]; then
-    err "config globs must stay inside the project (no absolute, ~ or .. patterns): $file"
+    err "config globs must stay inside the project (no absolute, ~ or .. patterns): $file. $hint"
     return 2
-  fi
-  will_fix || return 0
-  if [ "$rc" -eq 2 ]; then
-    err "cannot verify the globs of $file (computed, aliased, or not evaluable with node); refusing to fix. Use a literal globs list, or lint explicit files"
+  elif [ "$rc" -eq 2 ]; then
+    err "cannot verify the globs of $file (computed, aliased, or not evaluable with node). $hint"
     return 2
   fi
   links=$(list_outside_symlinks "$PROJECT_ROOT")
   if [ -n "$links" ]; then
-    err 'refusing to fix: symlinks to Markdown files or directories point outside the project:'
+    err "refusing to sweep: symlinks to Markdown files or directories point outside the project. $hint"
     printf '%s\n' "$links" | sed 's/^/  /' >&2
     return 2
   fi
