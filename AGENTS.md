@@ -24,10 +24,11 @@ via the CLI (`npx skills experimental_install --agent <agent>` to restore,
 `.claude/skills/` and edited directly. `.agents/` and `.claude/` are
 excluded from lint and link checks; keep them so.
 
-## Commits
+## Commits and PRs
 
 Use `caveman-commit`, but always end with a `Co-Authored-By:` trailer naming
-the AI agent or model.
+the AI agent or model. Never include session links (remote control, web or
+cloud sessions, session share URLs) in commits or PRs.
 
 ## Checks
 
