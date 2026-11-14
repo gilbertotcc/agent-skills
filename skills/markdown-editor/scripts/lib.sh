@@ -242,14 +242,16 @@ has_markdownlint_config() {
 
 # Print the entries of option KEY in an options file, comments removed; nothing
 # if it is absent. Textual, so it covers JSONC, YAML and literal values in
-# .cjs/.mjs. Comments (`#` after whitespace, `//`, `/* */`) are dropped and the
-# key is looked for outside quoted strings (the key itself may be bare or
-# quoted). With BLOCK=1 the first entry spans a `[...]` list over several lines,
+# .cjs/.mjs. Comments are dropped per format (YAML: `#` at the start or after
+# whitespace; JSONC and JS: `//` and `/* */`) and the key is looked for
+# outside quoted strings (the key itself may be bare or quoted). With BLOCK=1 the first entry spans a `[...]` list over several lines,
 # or the indented/`-` block that follows; with BLOCK=0 every match is printed as
 # its single line; with BLOCK=2 the whole file is printed, comments removed.
 # markdownlint_option_entry FILE KEY BLOCK
 markdownlint_option_entry() {
-  awk -v key="$2" -v block="$3" '
+  local fmt=js
+  case "$1" in *.yaml | *.yml) fmt=yaml ;; esac
+  awk -v key="$2" -v block="$3" -v fmt="$fmt" '
     # Sets OUT (line without comments) and MASK (same, with the characters
     # inside quoted strings replaced by "x", so syntax can be matched safely).
     function scan(line,    i, n, c, q, str) {
@@ -274,9 +276,12 @@ markdownlint_option_entry() {
           continue
         }
         if (c == "\"" || c == "\047") { q = c; str = ""; OUT = OUT c; MASK = MASK c; continue }
-        if (c == "#" && (i == 1 || substr(line, i - 1, 1) ~ /[ \t]/)) break
-        if (c == "/" && substr(line, i + 1, 1) == "/") break
-        if (c == "/" && substr(line, i + 1, 1) == "*") { inblock = 1; i++; continue }
+        if (fmt == "yaml") {
+          if (c == "#" && (i == 1 || substr(line, i - 1, 1) ~ /[ \t]/)) break
+        } else {
+          if (c == "/" && substr(line, i + 1, 1) == "/") break
+          if (c == "/" && substr(line, i + 1, 1) == "*") { inblock = 1; i++; continue }
+        }
         OUT = OUT c; MASK = MASK c
       }
     }
@@ -359,8 +364,10 @@ markdownlint_globs_check() {
       # when it might not be: a second `globs` anywhere (JSONC keeps the last
       # duplicate; a nested one can hide the real one), a backslash escape
       # (\u002e, \x2e, an escaped key), a YAML alias or `<<` merge.
+      # Also count in the raw text: stripping comments must never hide a key.
       text=$(markdownlint_option_entry "$file" globs 2)
       if [ "$(printf '%s\n' "$text" | grep -o globs | wc -l)" -ne 1 ] ||
+        [ "$(grep -o globs "$file" | wc -l)" -ne 1 ] ||
         printf '%s\n' "$text" | grep -Eq '\\|<<|(^|[[:space:],[-])\*[[:alpha:]_]'; then
         return 2
       fi

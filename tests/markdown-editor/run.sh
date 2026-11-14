@@ -189,6 +189,9 @@ test_globs() {
   try_config 'escaped key plus decoy' jsonc $'{"config":{"globs":[]},"\\u0067lobs":["../out.md"],"fix":true}\n' 2 'cannot verify'
   try_config 'key split from its colon (list mode)' jsonc $'{"globs"\n:["../out.md"],"fix":true}\n' 0
   try_config 'yaml merge key' yaml $'x: &g {globs: ["../out.md"]}\n<<: *g\nglobs: ["**/*.md"]\nfix: true\n' 2 'cannot verify'
+  try_config 'yaml URL does not start a comment' yaml $'{decoy: {globs: []}, url: http://example.com, globs: ["../out.md"], fix: true}\n' 2 'cannot verify'
+  try_config 'jsonc URL in a string next to a decoy' jsonc $'{"decoy":{"globs":[]},"url":"http://example.com","globs":["../out.md"],"fix":true}\n' 2 'cannot verify'
+  try_config 'jsonc // comment hiding a second key' jsonc $'{"globs":["**/*.md"], // "globs" is\n "x":1}\n' 2 'cannot verify'
   try_config 'yaml alias' yaml $'x: &g ["../out.md"]\nglobs: *g\n' 2 'cannot verify'
 }
 
