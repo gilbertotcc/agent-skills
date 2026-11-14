@@ -8,27 +8,39 @@ designed to be portable and independent of any specific AI agent.
 Although the author has used these skills—otherwise, he shouldn’t have created
 them—their behavior has not been formally verified, so use at your own risk.
 
-## Prerequisites
-
-- [Node.js](https://nodejs.org/en/download) 22.20.0 or later, for the lint
-  and skills CLIs.
-- [lychee](https://github.com/lycheeverse/lychee#installation), for link
-  checks.
-- [Claude Code](https://code.claude.com/docs/en/setup) (optional), for the
-  development skills and the Markdown lint hook.
-
 ## Usage
 
-TODO: Add content.
+Install the skills with [skills.sh](https://www.skills.sh/), which links
+them where your agent looks for them:
+
+```sh
+npx skills add gilbertotcc/agent-skills                 # pick interactively
+npx skills add gilbertotcc/agent-skills --skill <name>  # one skill
+```
+
+### Skills
+
+| Skill | Description    |
+| ----- | -------------- |
+| —     | No skills yet. |
 
 ## Development
 
 Agent skills used while developing this repository are managed with
-[skills.sh](https://www.skills.sh/) and pinned in `skills-lock.json`. To
-restore them:
+[skills.sh](https://www.skills.sh/), pinned in `skills-lock.json` and
+installed in `.agents/skills/`. To restore them for Claude Code:
 
 ```sh
-npx skills experimental_install
+npx skills experimental_install --agent claude-code
+```
+
+For another agent, replace `claude-code` with its name, so that `skills`
+links the skills where that agent looks for them.
+
+To try this repository's skills locally before publishing them:
+
+```sh
+npx skills add ./skills --agent claude-code
 ```
 
 ## Quality checks
@@ -36,4 +48,9 @@ npx skills experimental_install
 ```sh
 npx markdownlint-cli2
 lychee .
+npx skills add . --list   # every skill is discoverable
 ```
+
+## License
+
+[MIT](LICENSE)

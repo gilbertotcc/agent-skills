@@ -3,5 +3,6 @@ extensions = ["md"]
 exclude_loopback = true
 
 exclude_path = [
+  ".agents/**/*.md",
   ".claude/**/*.md"
 ]

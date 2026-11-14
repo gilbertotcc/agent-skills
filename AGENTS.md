@@ -16,16 +16,21 @@ take precedence. Keep consumers' token cost low:
 
 ## Development skills
 
-`.claude/skills/` holds dev-only skills, not part of the collection. Skills
-pinned in `skills-lock.json` are managed only via the `skills` CLI
-(`npx skills experimental_install` to restore, `npx skills update -p`);
-others are authored here and edited directly. `.claude/` is excluded from
-lint and link checks; keep it so.
+Skills used to develop this repo, third-party or from `skills/`. Skills
+pinned in `skills-lock.json` are installed by the `skills` CLI in
+`.agents/skills/` and linked into agent folders (e.g. `.claude/skills/`).
+Manage them only via the CLI
+(`npx skills experimental_install --agent <agent>` to restore,
+`npx skills update -p`); edit collection skills in `skills/`, never their
+installed copies. Other dev skills are authored in
+`.claude/skills/` and edited directly. `.agents/` and `.claude/` are
+excluded from lint and link checks; keep them so.
 
-## Commits
+## Commits and PRs
 
 Use `caveman-commit`, but always end with a `Co-Authored-By:` trailer naming
-the AI agent or model.
+the AI agent or model. Never include session links (remote control, web or
+cloud sessions, session share URLs) in commits or PRs.
 
 ## Checks
 
@@ -34,4 +39,5 @@ No build or tests; CI runs only these:
 ```sh
 npx markdownlint-cli2 [file]   # lint, auto-fixes in place; wrap prose at 80
 lychee --no-progress .         # links; skip URLs via .lycheeignore
+npx skills add . --list        # skills discoverable (when skills/ changes)
 ```

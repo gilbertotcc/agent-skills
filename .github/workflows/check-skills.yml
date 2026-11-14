@@ -1,0 +1,38 @@
+name: Check skills
+
+on:
+  pull_request:
+    paths:
+    - 'skills/**'
+    - '.github/workflows/check-skills.yml'
+  push:
+    branches:
+    - 'main'
+    paths:
+    - 'skills/**'
+    - '.github/workflows/check-skills.yml'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  discover-skills:
+    name: Discover skills
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v7
+    - name: Set up Node.js
+      uses: actions/setup-node@v6
+      with:
+        node-version: lts/*
+    # Exits non-zero when no valid skill (SKILL.md with name and
+    # description) is found.
+    - name: List skills with the skills CLI
+      run: |
+        if [ ! -d skills ]; then
+          echo "::notice::No skills/ directory yet; skipping."
+          exit 0
+        fi
+        npx --yes skills add . --list
