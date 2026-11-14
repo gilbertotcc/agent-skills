@@ -67,7 +67,8 @@ Exit 2 from either script is a usage or environment error (e.g. neither
 markdownlint-cli2 nor npx available, or a sweep refused because the config
 or a symlink reaches outside the project): relay its message to the user
 instead of treating the check as passed; for a refused sweep, lint the
-files explicitly.
+files explicitly. Sweeps with a `.cjs`/`.mjs` options file are always
+refused: its code can select different files at lint time.
 
 ## Sweep the project
 

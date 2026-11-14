@@ -19,8 +19,9 @@
 #     files it ignores print "skipped (ignored by config): <path>". A sweep is
 #     refused (exit 2), fixing or not, because it may write through a config
 #     `fix` that cannot be reliably detected: if a glob is absolute, starts with
-#     `~` or contains `..`; if the globs cannot be verified (.cjs/.mjs are
-#     evaluated with node; a failure or a non-array refuses); or if any symlink
+#     `~` or contains `..`; if the globs cannot be verified (any .cjs/.mjs
+#     options file, whose code may compute other globs for the linter; or
+#     YAML/JSONC text the parser may read differently); or if any symlink
 #     to a Markdown file or directory anywhere in the project (except .git)
 #     points outside it. Lint explicit files instead.
 #   - Otherwise the files are enumerated here: a sweep lints tracked and
@@ -130,7 +131,7 @@ check_config_sweep_is_contained() {
     err "config globs must stay inside the project (no absolute, ~ or .. patterns): $file. $hint"
     return 2
   elif [ "$rc" -eq 2 ]; then
-    err "cannot verify the globs of $file (computed, aliased, escaped, duplicated, or not evaluable with node). $hint"
+    err "cannot verify the globs of $file (JavaScript options, aliases, escapes or duplicates). $hint"
     return 2
   fi
   links=$(list_outside_symlinks "$PROJECT_ROOT")

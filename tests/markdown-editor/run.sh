@@ -176,11 +176,13 @@ test_globs() {
   try_config 'inline comment after real globs' yaml $'globs: ["**/*.md"] # ["../out.md"]\n' 0
   try_config 'globs only in an inline comment' yaml $'ignores: [] # globs: ["../out.md"]\n' 0
   try_config 'globs only in a quoted string' jsonc $'{ "ignores": ["globs: [\\"../x\\"]"] }\n' 0
-  try_config 'computed cjs, unsafe' cjs $'const s = ["../out.md"];\nmodule.exports = { globs: s };\n' 2 "$unsafe"
-  try_config 'computed cjs, safe' cjs $'const s = ["**/*.md"];\nmodule.exports = { globs: s };\n' 0
-  try_config 'computed mjs, unsafe' mjs $'const s = [".." + "/out.md"];\nexport default { globs: s };\n' 2 "$unsafe"
-  try_config 'cjs that throws' cjs $'throw new Error("x");\nmodule.exports = { globs: ["a.md"], fix: true };\n' 2 'cannot verify'
-  try_config 'cjs globs not an array' cjs $'module.exports = { globs: "**/*.md" };\n' 2 'cannot verify'
+  try_config 'cjs, static unsafe' cjs $'module.exports = { globs: ["../out.md"], fix: true };\n' 2 'cannot verify'
+  try_config 'cjs, static safe' cjs $'module.exports = { globs: ["**/*.md"] };\n' 2 'cannot verify'
+  try_config 'mjs, computed unsafe' mjs $'const s = [".." + "/out.md"];\nexport default { globs: s, fix: true };\n' 2 'cannot verify'
+  try_config 'cjs, caller-dependent globs' cjs $'module.exports = { globs: process.argv[1] && process.argv[1].endsWith(".cjs") ? ["**/*.md"] : ["../out.md"], fix: true };\n' 2 'cannot verify'
+  try_config 'yaml space before absolute (quoted)' yaml $'globs: [ "/etc/*.md"]\nfix: true\n' 2 "$unsafe"
+  try_config 'yaml space before absolute (plain)' yaml $'globs: [ /tmp/outside.md]\nfix: true\n' 2 "$unsafe"
+  try_config 'jsonc space before tilde' jsonc $'{"globs":[ "~/x.md"],"fix":true}\n' 2 "$unsafe"
   try_config 'JSON unicode escape of ..' jsonc $'{"globs":["\\u002e\\u002e/out.md"],"fix":true}\n' 2 'cannot verify'
   try_config 'YAML hex escape of ..' yaml $'globs: ["\\x2e\\x2e/out.md"]\nfix: true\n' 2 'cannot verify'
   try_config 'duplicate globs key (jsonc)' jsonc $'{"globs":["**/*.md"],"globs":["../out.md"],"fix":true}\n' 2 'cannot verify'

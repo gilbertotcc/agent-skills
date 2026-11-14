@@ -321,44 +321,20 @@ glob_escapes_project() {
   esac
 }
 
-# Print the `globs` array that a .cjs/.mjs options file really exports, one per
-# line, by evaluating it with node (which markdownlint-cli2 needs anyway). Fails
-# if node or the file does not work, or if `globs` is not an array of strings.
-# markdownlint_js_globs FILE
-markdownlint_js_globs() {
-  node -e '
-    const url = require("url");
-    import(url.pathToFileURL(process.argv[1]).href).then(function (mod) {
-      const globs = (mod.default || mod).globs;
-      if (globs === undefined) return;
-      const ok = Array.isArray(globs) &&
-        globs.every(function (g) { return typeof g === "string"; });
-      if (!ok) process.exit(3);
-      globs.forEach(function (g) { console.log(g); });
-    }).catch(function () { process.exit(3); });
-  ' "$1"
-}
-
 # Can the files the options file in DIR selects leave the project? Fails closed.
 #   0  all `globs` stay inside
 #   1  a glob is absolute, starts with `~` or contains `..`
-#   2  cannot tell: node missing, config not evaluable, or a YAML/JSONC file
-#      whose text could differ from what the parser sees (duplicate or nested
+#   2  cannot tell: a .cjs/.mjs options file (code can compute different
+#      globs for the linter than for any check), or a YAML/JSONC file whose
+#      text could differ from what the parser sees (duplicate or nested
 #      `globs`, backslash escapes, aliases, merges)
-# YAML/JSONC are read as text (they cannot compute values); .cjs/.mjs are
-# evaluated so computed globs are checked too.
+# YAML/JSONC are read as text: they cannot compute values.
 # markdownlint_globs_check DIR
 markdownlint_globs_check() {
-  local file globs glob text
+  local file globs text
   file=$(markdownlint_options_file "$1") || return 0
   case "$file" in
-    *.cjs | *.mjs)
-      command -v node >/dev/null 2>&1 || return 2
-      globs=$(markdownlint_js_globs "$file") || return 2
-      while IFS= read -r glob; do
-        if glob_escapes_project "$glob"; then return 1; fi
-      done <<<"$globs"
-      ;;
+    *.cjs | *.mjs) return 2 ;;
     *)
       # The text view of the top-level `globs` must be the parser's. Refuse
       # when it might not be: a second `globs` anywhere (JSONC keeps the last
@@ -373,7 +349,7 @@ markdownlint_globs_check() {
       fi
       globs=$(markdownlint_option_entry "$file" globs 1)
       if printf '%s\n' "$globs" |
-        grep -Eq "\\.\\.|(['\"[,]|-[[:space:]]+|:[[:space:]]+)!?[/~]"; then
+        grep -Eq "\\.\\.|(['\"[,][[:space:]]*|-[[:space:]]+|:[[:space:]]+)!?[/~]"; then
         return 1
       fi
       ;;
