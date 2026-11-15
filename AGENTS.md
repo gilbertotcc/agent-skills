@@ -45,11 +45,11 @@ per paragraph.
 No build; CI runs the equivalent of these:
 
 ```sh
-npx --yes markdownlint-cli2 [--fix]      # lint; wrap prose at 80
+npx --yes markdownlint-cli2 [--fix]              # lint; wrap prose at 80
 lychee --no-progress --hidden --extensions md .  # links; .lycheeignore
-npx skills add . --list   # skills discoverable (when skills/ changes)
-.github/scripts/check-skills.sh  # SKILL.md rules (when skills/ changes)
-tests/<skill>/run.sh      # skill script tests (when the skill changes)
+npx skills add . --list                          # skills discoverable (when skills/ changes)
+.github/scripts/check-skills.sh                  # SKILL.md rules (when skills/ changes)
+tests/<skill>/run.sh                             # skill script tests (when the skill changes)
 ```
 
 CI also runs the spec's `skills-ref validate` on each skill.

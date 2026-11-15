@@ -1,7 +1,5 @@
 name: Test cli-designer
 
-# One workflow per skill with scripts, so its tests run only when the
-# skill or its tests change.
 on:
   pull_request:
     paths:
