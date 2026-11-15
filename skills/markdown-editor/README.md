@@ -36,8 +36,12 @@ permission settings) allows it.
   cargo install lychee   # any platform with Rust
   ```
 
-## Data use
+## Security & Privacy
 
-- Through `npx`, the first run downloads markdownlint-cli2 from npm.
-- lychee sends a request to every URL it checks.
-- No accounts or environment variables; nothing else leaves the machine.
+- Data leaving the machine: through `npx`, the first run downloads
+  markdownlint-cli2 from npm; lychee sends a request to every URL it
+  checks. Nothing else leaves the machine.
+- Credentials: none; no accounts or environment variables.
+- Local side effects: `markdownlint-cli2 --fix` rewrites Markdown files in
+  place. Setup, only when you ask, copies starter configs and an optional
+  GitHub Actions workflow, and never overwrites existing files.
