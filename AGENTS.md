@@ -50,5 +50,8 @@ lychee --no-progress --hidden --extensions md .  # links; .lycheeignore
 npx skills add . --list   # skills discoverable (when skills/ changes)
 ```
 
+Links are also checked weekly; each broken URL gets one `broken-link` issue,
+closed when the URL works again. Fix the link or add it to `.lycheeignore`.
+
 If a skill ships scripts, their tests live in `tests/<skill>/`, outside
 `skills/`, so they don't ship with the skill.

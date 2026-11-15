@@ -1,5 +1,8 @@
 extensions = ["md"]
 
+timeout = 30
+max_concurrency = 10
+
 exclude_loopback = true
 
 # Regular expressions, not globs.
