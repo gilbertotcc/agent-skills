@@ -48,7 +48,10 @@ No build; CI runs the equivalent of these:
 npx --yes markdownlint-cli2 [--fix]      # lint; wrap prose at 80
 lychee --no-progress --hidden --extensions md .  # links; .lycheeignore
 npx skills add . --list   # skills discoverable (when skills/ changes)
+.github/scripts/check-skills.sh  # SKILL.md rules (when skills/ changes)
 ```
+
+CI also runs the spec's `skills-ref validate` on each skill.
 
 Links are also checked weekly; each broken URL gets one `broken-link` issue,
 closed when the URL works again. Fix the link or add it to `.lycheeignore`.
