@@ -16,12 +16,13 @@ npx skills add gilbertotcc/agent-skills --skill cli-designer
 ## Requirements
 
 None. The agent reads the live guidelines from `https://clig.dev/llms.txt`
-when it has network access, and otherwise uses the skill's bundled checklist.
+with the skill's script, which needs `bash`, `curl`, `awk` and network
+access. Without them, the agent uses the skill's bundled checklist.
 
 ## Data use
 
-- The agent fetches `https://clig.dev/llms.txt`, if network access is
-  available.
+- The skill's script fetches `https://clig.dev/llms.txt`, if network access
+  is available.
 - It runs your CLI only with harmless calls (`--help`, `--version`).
 - Apart from the clig.dev fetch, the skill makes no network requests of its
   own. Your CLI may still send data by itself, even for `--help` or

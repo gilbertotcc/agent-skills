@@ -27,19 +27,17 @@ When sources disagree, the higher one wins:
    the clig.dev rule it contradicts. Apply it in the project's own form: if
    the project uses `--format json`, never propose `--json`.
 2. **clig.dev, read live.** Before you deliver, read the live sections behind
-   your decisions or findings, once per task. Don't read the whole file:
-   `llms.txt` is about 72 KB. The section headings are `The Basics`, `Help`,
-   `Documentation`, `Output`, `Errors`, `Arguments and flags`,
-   `Interactivity`, `Subcommands`, `Robustness`, `Future-proofing`,
-   `Signals and control characters`, `Configuration`,
-   `Environment variables`, `Naming`, `Distribution` and `Analytics`:
+   your decisions or findings, once per task, with
+   [scripts/clig-sections.sh](scripts/clig-sections.sh) (path relative to
+   this skill's folder). It prints only the sections you name, as `--list`
+   prints them; `llms.txt` is about 72 KB:
 
    ```sh
-   curl -sL https://clig.dev/llms.txt | awk '/^## /{g=($0 ~ /^## Guidelines/)}
-     g && /^### (Output|Errors)( \{|$)/{p=1;print;next} /^##+ /{p=0} p'
+   bash scripts/clig-sections.sh --list         # section names
+   bash scripts/clig-sections.sh Output Errors  # print those sections
    ```
 
-   Replace `Output|Errors` with the sections you need.
+   Exit 1 means clig.dev can't be read; exit 3 means a wrong section name.
 3. **Bundled checklist.** [references/checklist.md](references/checklist.md)
    is the list to walk through, and the fallback when clig.dev can't be read.
    If clig.dev can't be read, tell the user.
