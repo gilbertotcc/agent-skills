@@ -4,12 +4,14 @@ on:
   pull_request:
     paths:
     - 'skills/**'
+    - '.github/scripts/check-skills.sh'
     - '.github/workflows/check-skills.yml'
   push:
     branches:
     - 'main'
     paths:
     - 'skills/**'
+    - '.github/scripts/check-skills.sh'
     - '.github/workflows/check-skills.yml'
 
 concurrency:
@@ -19,25 +21,58 @@ concurrency:
 permissions:
   contents: read
 
+env:
+  # skills-ref, the spec's reference validator; the README calls it
+  # "for demonstration purposes only". It has no release, so Dependabot
+  # doesn't track this commit: bump it by hand.
+  SKILLS_REF_SPEC: git+https://github.com/agentskills/agentskills@83021e2be457a9b6679148719c1f6074f0ad975e#subdirectory=skills-ref
+
 jobs:
-  discover-skills:
-    name: Discover skills
+  check-skills:
+    name: Check skills
     runs-on: ubuntu-latest
     steps:
     - name: Checkout repository
       uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       with:
         persist-credentials: false
+    - name: Look for skills
+      id: skills
+      run: |
+        if [ -d skills ]; then
+          echo "present=true" >> "$GITHUB_OUTPUT"
+        else
+          echo "::notice::No skills/ directory yet; skipping."
+        fi
+    # Errors on missing or mismatched frontmatter; warns on size limits.
+    - name: Check SKILL.md files
+      if: steps.skills.outputs.present == 'true'
+      run: .github/scripts/check-skills.sh
+    - name: Validate with skills-ref
+      if: steps.skills.outputs.present == 'true'
+      run: |
+        status=0
+        for dir in skills/*/; do
+          pipx run --spec "$SKILLS_REF_SPEC" skills-ref validate "$dir" ||
+            status=1
+        done
+        exit "$status"
     - name: Set up Node.js
+      if: steps.skills.outputs.present == 'true'
       uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
       with:
         node-version: lts/*
-    # Exits non-zero when no valid skill (SKILL.md with name and
-    # description) is found.
+    # The CLI exits non-zero only when no skill is valid, so also check
+    # that it finds every skills/*/SKILL.md.
     - name: List skills with the skills CLI
+      if: steps.skills.outputs.present == 'true'
       run: |
-        if [ ! -d skills ]; then
-          echo "::notice::No skills/ directory yet; skipping."
-          exit 0
+        set -o pipefail
+        npx --yes skills add . --list | tee skills-list.txt
+        found=$(sed 's/\x1b\[[0-9;?]*[A-Za-z]//g' skills-list.txt |
+          sed -nE 's/.*Found ([0-9]+) skills?.*/\1/p' | head -n 1)
+        expected=$(find skills -mindepth 2 -maxdepth 2 -name SKILL.md | wc -l)
+        if [ "${found:-0}" -ne "$expected" ]; then
+          echo "::error::skills CLI found ${found:-0} skills; skills/ has $expected SKILL.md files"
+          exit 1
         fi
-        npx --yes skills add . --list
