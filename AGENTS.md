@@ -49,7 +49,7 @@ npx --yes markdownlint-cli2 [--fix]      # lint; wrap prose at 80
 lychee --no-progress --hidden --extensions md .  # links; .lycheeignore
 npx skills add . --list   # skills discoverable (when skills/ changes)
 .github/scripts/check-skills.sh  # SKILL.md rules (when skills/ changes)
-tests/<skill>/run.sh      # skill script tests (when skills/ or tests/ changes)
+tests/<skill>/run.sh      # skill script tests (when the skill changes)
 ```
 
 CI also runs the spec's `skills-ref validate` on each skill.
@@ -58,4 +58,6 @@ Links are also checked weekly; each broken URL gets one `broken-link` issue,
 closed when the URL works again. Fix the link or add it to `.lycheeignore`.
 
 If a skill ships scripts, their tests live in `tests/<skill>/`, outside
-`skills/`, so they don't ship with the skill.
+`skills/`, so they don't ship with the skill. Each such skill gets its own
+`.github/workflows/test-<skill>.yml`, filtered to `skills/<skill>/**` and
+`tests/<skill>/**`, so its tests run only when they can be affected.
