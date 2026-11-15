@@ -12,7 +12,11 @@ take precedence. Keep consumers' token cost low:
 - `description` ≤ ~200 chars: what it does, then when to use it.
 - `SKILL.md` body ≤ ~150 lines; move rare cases to `references/`.
 - Prefer `scripts/` over prose procedures (only output enters context).
-- One or two short examples; no `README.md` duplicating `SKILL.md`.
+- One or two short examples; no `README.md` duplicating `SKILL.md`. The
+  user-facing skill README is the exception.
+- Every skill README states requirements and security notes, and
+  `SKILL.md` declares requirements in frontmatter (`compatibility`,
+  `metadata.requires-env`), as `.claude/rules/skill-readme.md` describes.
 
 ## Development skills
 

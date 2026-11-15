@@ -19,11 +19,13 @@ None. The agent reads the live guidelines from `https://clig.dev/llms.txt`
 with the skill's script, which needs `bash`, `curl`, `awk` and network
 access. Without them, the agent uses the skill's bundled checklist.
 
-## Data use
+## Security & Privacy
 
-- The skill's script fetches `https://clig.dev/llms.txt`, if network access
-  is available.
-- It runs your CLI only with harmless calls (`--help`, `--version`).
-- Apart from the clig.dev fetch, the skill makes no network requests of its
-  own. Your CLI may still send data by itself, even for `--help` or
-  `--version`.
+- Data leaving the machine: the skill's script fetches
+  `https://clig.dev/llms.txt` when network access is available, and sends
+  nothing else. Your CLI may still send data by itself, even for `--help`
+  or `--version`.
+- Credentials: none.
+- Local side effects: the agent runs your CLI only with harmless calls
+  (`--help`, `--version`, no arguments, a typo), never commands that change
+  state. It changes files only when you ask it to implement a design.
