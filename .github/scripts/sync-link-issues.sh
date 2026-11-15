@@ -98,6 +98,29 @@ ok_urls=$(jq -c '[(.success_map // {})[][].url] | unique' <<<"$json") \
 timeout_urls=$(jq -c '[(.timeout_map // {})[][].url] | unique' <<<"$json") \
   || die "cannot read timed-out links from report"
 
+# GitHub caps issue titles at 256 characters. Longer titles keep the start of
+# the URL plus a hash of the full URL, so two URLs never share a title.
+MAX_TITLE=256
+hash12() {
+  if command -v sha256sum >/dev/null 2>&1; then sha256sum; else shasum -a 256; fi \
+    | cut -c1-12
+}
+long_titles='{}'
+while IFS= read -r url; do
+  [[ -n $url ]] || continue
+  hash=$(printf '%s' "$url" | hash12)
+  long_titles=$(jq -c --arg u "$url" --arg h "$hash" --arg p "$PREFIX" \
+    --argjson m "$MAX_TITLE" \
+    '. + {($u): ($p + $u[0:($m - ($p | length) - ($h | length) - 2)] + "… " + $h)}' \
+    <<<"$long_titles")
+done < <(jq -r --arg p "$PREFIX" --argjson m "$MAX_TITLE" \
+  --argjson ok "$ok_urls" --argjson to "$timeout_urls" \
+  '(map(.url) + $ok + $to) | unique[] | select(($p + .) | length > $m)' \
+  <<<"$broken")
+title_for() {  # title_for URL
+  jq -r --arg u "$1" --arg p "$PREFIX" '.[$u] // ($p + $u)' <<<"$long_titles"
+}
+
 # would: "would " in dry-run. past VERB SUFFIX: VERB in dry-run, else VERB+SUFFIX.
 would() { if $dry_run; then printf 'would '; fi; }
 past() { if $dry_run; then printf '%s' "$1"; else printf '%s%s' "$1" "$2"; fi; }
@@ -108,7 +131,6 @@ gh_write() {  # gh_write ARGS...: run a gh write command unless --dry-run
   gh "$@" </dev/null
 }
 
-# Markdown snippets (one line per paragraph, no hard wrapping).
 files_md() { jq -r '.files | map("- `" + . + "`") | join("\n")' <<<"$1"; }
 run_md() { if [[ -n $run_url ]]; then printf '\n[Workflow run](%s)\n' "$run_url"; fi; }
 
@@ -138,7 +160,7 @@ issues=$(gh issue list --label "$LABEL" --state all --limit 1000 \
 while IFS= read -r entry; do
   [[ -n $entry ]] || continue
   url=$(jq -r '.url' <<<"$entry")
-  title="$PREFIX$url"
+  title=$(title_for "$url")
   # Prefer an open issue; otherwise the most recent closed one.
   found=$(jq -r --arg t "$title" '
     map(select(.title == $t)) | sort_by(.state != "OPEN", -.number)
@@ -175,30 +197,38 @@ while IFS= read -r entry; do
 done < <(jq -c '.[]' <<<"$broken")
 
 # 4. Close open issues whose URL is no longer broken.
-while IFS=$'\t' read -r number title; do
+# Issues are matched by title, which also covers hashed long titles.
+while IFS=$'\t' read -r number result; do
   [[ -n $number ]] || continue
-  url=${title#"$PREFIX"}
-  if jq -e --arg u "$url" 'index($u) != null' <<<"$timeout_urls" >/dev/null; then
-    echo "unchanged #$number (timed out)"
-    unchanged=$((unchanged + 1))
-    continue
-  fi
-  if jq -e --arg u "$url" 'index($u) != null' <<<"$ok_urls" >/dev/null; then
-    why="works again"
-    msg="The link works again."
-  else
-    why="no longer checked"
-    msg="The weekly link check no longer checks this URL (removed from the docs or added to \`.lycheeignore\`)."
-  fi
+  case $result in
+    timeout)
+      echo "unchanged #$number (timed out)"
+      unchanged=$((unchanged + 1))
+      continue
+      ;;
+    ok)
+      why="works again"
+      msg="The link works again."
+      ;;
+    *)
+      why="no longer checked"
+      msg="The weekly link check no longer checks this URL (removed from the docs or added to \`.lycheeignore\`)."
+      ;;
+  esac
   gh_write issue close "$number" --reason completed \
     --comment "$(printf '%s\n' "$msg"; run_md)" >/dev/null \
     || die "gh issue close #$number failed"
   echo "$(would)$(past close d) #$number ($why)"
   closed=$((closed + 1))
-done < <(jq -r --argjson b "$broken" --arg p "$PREFIX" '
-  .[] | select(.state == "OPEN" and (.title | startswith($p)))
-  | select(.title[($p | length):] as $u | $b | map(.url) | index($u) | not)
-  | "\(.number)\t\(.title)"' <<<"$issues")
+done < <(jq -r --arg p "$PREFIX" --argjson lt "$long_titles" \
+  --argjson b "$broken" --argjson ok "$ok_urls" --argjson to "$timeout_urls" '
+  def t: $lt[.] // ($p + .);
+  ($b | map(.url | t)) as $bt | ($ok | map(t)) as $okt | ($to | map(t)) as $tot
+  | .[] | select(.state == "OPEN" and (.title | startswith($p)))
+  | .title as $x
+  | select($bt | index($x) | not)
+  | "\(.number)\t\(if ($tot | index($x)) then "timeout"
+      elif ($okt | index($x)) then "ok" else "gone" end)"' <<<"$issues")
 
 if $dry_run; then
   echo "dry run, nothing written: $created to create, $reopened to reopen," \

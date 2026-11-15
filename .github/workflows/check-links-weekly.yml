@@ -45,7 +45,9 @@ jobs:
           echo "::error::lychee failed with exit code $EXIT_CODE"
           exit 1
         fi
+    # Issues are repository-wide: only main's links may change them.
     - name: Sync broken-link issues
+      if: github.ref == 'refs/heads/main'
       env:
         GH_TOKEN: ${{ github.token }}
         GH_REPO: ${{ github.repository }}
