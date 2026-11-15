@@ -1,0 +1,47 @@
+# Command Line Interface Guidelines
+
+## Philosophy {#philosophy}
+
+### Simple parts that work&nbsp;together {#simple-parts}
+
+Philosophy text about parts.
+
+### Robustness {#robustness-principle}
+
+PHILOSOPHY-ROBUSTNESS body.
+
+## Guidelines {#guidelines}
+
+Intro text of guidelines.
+
+### Output {#output}
+
+OUTPUT body line.
+
+#### Output subheading
+
+OUTPUT-SUB body line.
+
+### Errors {#errors}
+
+ERRORS body line.
+
+### Arguments and flags {#arguments-and-flags}
+
+ARGS body line.
+
+### Subcommands
+
+SUBCOMMANDS body line.
+
+### Robustness {#robustness-guidelines}
+
+GUIDELINES-ROBUSTNESS body.
+
+### Signals and control&nbsp;characters {#signals}
+
+SIGNALS body line.
+
+## Further reading {#further-reading}
+
+FURTHER-READING text.

@@ -4,6 +4,7 @@ on:
   pull_request:
     paths:
     - 'skills/**'
+    - 'tests/**'
     - '.github/scripts/check-skills.sh'
     - '.github/workflows/check-skills.yml'
   push:
@@ -11,6 +12,7 @@ on:
     - 'main'
     paths:
     - 'skills/**'
+    - 'tests/**'
     - '.github/scripts/check-skills.sh'
     - '.github/workflows/check-skills.yml'
 
@@ -48,6 +50,9 @@ jobs:
     - name: Check SKILL.md files
       if: steps.skills.outputs.present == 'true'
       run: .github/scripts/check-skills.sh
+    - name: Run cli-designer tests
+      if: steps.skills.outputs.present == 'true'
+      run: tests/cli-designer/run.sh
     - name: Validate with skills-ref
       if: steps.skills.outputs.present == 'true'
       run: |

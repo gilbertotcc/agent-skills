@@ -49,6 +49,7 @@ npx --yes markdownlint-cli2 [--fix]      # lint; wrap prose at 80
 lychee --no-progress --hidden --extensions md .  # links; .lycheeignore
 npx skills add . --list   # skills discoverable (when skills/ changes)
 .github/scripts/check-skills.sh  # SKILL.md rules (when skills/ changes)
+tests/<skill>/run.sh      # skill script tests (when skills/ or tests/ changes)
 ```
 
 CI also runs the spec's `skills-ref validate` on each skill.
