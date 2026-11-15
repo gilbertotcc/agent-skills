@@ -1,5 +1,7 @@
 # Agent skills
 
+[![skills.sh](https://skills.sh/b/gilbertotcc/agent-skills)](https://skills.sh/gilbertotcc/agent-skills)
+
 This repository provides Gilberto’s agent skills for use in diverse AI-aided
 tasks. These skills follow the
 [Agent Skills specification](https://agentskills.io/specification) and are
