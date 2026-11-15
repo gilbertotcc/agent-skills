@@ -45,8 +45,8 @@ lychee --no-progress <file>                # 2. links
    explain. Edit the content (don't disable the rule) and rerun until it
    exits 0. "Linting: 0 files" means the config ignores the file.
 2. **Check links** once the content is final. Fix or remove broken ones;
-   for links that look fine but fail, follow
-   [references/broken-links.md](references/broken-links.md).
+   for links that look fine but fail, or dead links a historical record
+   must keep, follow [references/broken-links.md](references/broken-links.md).
 3. **Repeat** both steps if anything changed.
 
 If a tool is missing, tell the user what wasn't checked and point them to
