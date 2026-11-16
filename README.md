@@ -10,6 +10,10 @@ designed to be portable and independent of any specific AI agent. If
 vendor-specific details appear in a skill, they are mistakes worth reporting
 or fixing, not exceptions to the portability principle.
 
+Although the skills are independent of any AI agent, this repository is
+configured for developing them with Claude Code (see
+[Development](#development)).
+
 The author wrote them during their personal exploration of AI capabilities.
 They tested, refined, and iterated on them until the agent's behavior was good
 enough to reuse the skill. Sharing them is the last phase of the process: even
@@ -48,8 +52,8 @@ The skills are engineered around a few principles:
   low; rare cases move to `references/`.
 - **Scripts over prose:** procedures live in `scripts/`, so only their output
   enters the agent's context.
-- **Tested scripts:** each skill that ships scripts has tests, run by its own
-  CI workflow.
+- **Testable scripts:** a skill's scripts can be tested; their tests live
+  outside the skill and run in the skill's own CI workflow.
 - **Declared requirements and security notes:** each skill's `README.md` and
   `SKILL.md` frontmatter state what it needs, and what it sends, runs or
   changes.
