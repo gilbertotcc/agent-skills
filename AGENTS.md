@@ -17,6 +17,8 @@ take precedence. Keep consumers' token cost low:
 - Every skill README states requirements and security notes, and
   `SKILL.md` declares requirements in frontmatter (`compatibility`,
   `metadata.requires-env`), as `.claude/rules/skill-readme.md` describes.
+- Adding, renaming or removing a skill, or changing its `description`,
+  updates the `README.md` Skills table.
 
 ## Development skills
 
@@ -49,11 +51,11 @@ per paragraph.
 No build; CI runs the equivalent of these:
 
 ```sh
-npx --yes markdownlint-cli2 [--fix]              # lint; wrap prose at 80
-lychee --no-progress --hidden --extensions md .  # links; .lycheeignore
-npx skills add . --list                          # skills discoverable (when skills/ changes)
-.github/scripts/check-skills.sh                  # SKILL.md rules (when skills/ changes)
-tests/<skill>/run.sh                             # skill script tests (when the skill changes)
+npx --yes markdownlint-cli2 [--fix]  # lint; wrap prose at 80
+lychee --no-progress --hidden .      # links; .lycheeignore
+npx skills add . --list              # skills discoverable (when skills/ changes)
+.github/scripts/check-skills.sh      # SKILL.md rules (when skills/ changes)
+tests/<skill>/run.sh                 # skill script tests (when the skill changes)
 ```
 
 CI also runs the spec's `skills-ref validate` on each skill.
@@ -61,7 +63,8 @@ CI also runs the spec's `skills-ref validate` on each skill.
 Links are also checked weekly; each broken URL gets one `broken-link` issue,
 closed when the URL works again. Fix the link or add it to `.lycheeignore`.
 
-If a skill ships scripts, their tests live in `tests/<skill>/`, outside
-`skills/`, so they don't ship with the skill. Each such skill gets its own
-`.github/workflows/test-<skill>.yml`, filtered to `skills/<skill>/**` and
-`tests/<skill>/**`, so its tests run only when they can be affected.
+Script tests are optional. When a skill has them, they live in
+`tests/<skill>/`, outside `skills/`, so they don't ship with the skill,
+and the skill gets its own `.github/workflows/test-<skill>.yml`, filtered
+to `skills/<skill>/**` and `tests/<skill>/**`, so its tests run only when
+they can be affected.

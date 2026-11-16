@@ -27,10 +27,10 @@ someone else's (mis)know-how valuable, worth reusing, adapting, and evolving.
 
 ## Skills
 
-| Skill                                      | Description                                                                         |
-| ------------------------------------------ | ----------------------------------------------------------------------------------- |
-| [cli-designer](skills/cli-designer/)       | Design, validate and extend CLIs following the Command Line Interface Guidelines.   |
-| [markdown-editor](skills/markdown-editor/) | Write and edit repository Markdown in its own markdownlint-cli2 style; check links. |
+| Skill                                      | Description                                                                          |
+| ------------------------------------------ | ------------------------------------------------------------------------------------ |
+| [cli-designer](skills/cli-designer/)       | Design, validate and extend CLIs following the Command Line Interface Guidelines.    |
+| [markdown-editor](skills/markdown-editor/) | Write and edit a project's Markdown in its own markdownlint-cli2 style; check links. |
 
 ## Usage
 
@@ -69,8 +69,8 @@ See [AGENTS.md](AGENTS.md) for the full authoring rules.
   with the skill; `.github/workflows/test-<skill>.yml` runs them.
 - `.agents/skills/`: third-party skills used to develop this repository,
   installed by the `skills` CLI and pinned in `skills-lock.json`.
-- `.claude/`: Claude Code's links to those skills, plus its own development
-  skills and rules.
+- `.claude/`: Claude Code's links to those skills, its rules, and any
+  Claude-only development skills.
 
 Collection skills used in development, such as `markdown-editor`, are
 symlinked from `.agents/skills/<name>` and `.claude/skills/<name>` to
@@ -100,11 +100,11 @@ npx skills add ./skills --agent claude-code
 CI runs these checks; run them locally before opening a pull request:
 
 ```sh
-npx --yes markdownlint-cli2              # add --fix to auto-fix
-lychee --no-progress --hidden --extensions md .
-npx skills add . --list                  # every skill is discoverable
-.github/scripts/check-skills.sh          # SKILL.md rules; needs yq v4
-tests/<skill>/run.sh                     # a skill's script tests
+npx --yes markdownlint-cli2      # add --fix to auto-fix
+lychee --no-progress --hidden .  # check links
+npx skills add . --list          # every skill is discoverable
+.github/scripts/check-skills.sh  # SKILL.md rules; needs yq v4
+tests/<skill>/run.sh             # a skill's script tests
 ```
 
 CI also validates each skill with `skills-ref validate skills/<name>`, the
