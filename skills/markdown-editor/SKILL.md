@@ -39,8 +39,8 @@ lychee --no-progress <file>                # 2. links
 
 1. **Lint.** `--no-globs` limits the run to the file. The tool reads
    `<file>` as a glob: backslash-escape `* ? [ ] ( )` in it (e.g.
-   `docs/\[draft\].md`), and report a name with braces unlinted. Exit 1 means issues
-   remain: each names a rule and line, which the
+   `docs/\[draft\].md`), and report a name with braces unlinted. Exit 1
+   means issues remain: each names a rule and line, which the
    [markdownlint rules](https://github.com/DavidAnson/markdownlint/blob/v0.42.1/doc/Rules.md)
    explain. Edit the content (don't disable the rule) and rerun until it
    exits 0. "Linting: 0 files" means the config ignores the file.

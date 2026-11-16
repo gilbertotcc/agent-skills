@@ -37,7 +37,8 @@ or [lipgloss](https://github.com/charmbracelet/lipgloss).
 - [argh](https://github.com/google/argh): small and fast to
   compile; choose for simple CLIs with few features.
 
-Helpers: [`std::io::IsTerminal`](https://doc.rust-lang.org/stable/std/io/trait.IsTerminal.html);
+Helpers:
+[`std::io::IsTerminal`](https://doc.rust-lang.org/stable/std/io/trait.IsTerminal.html);
 [anstream](https://github.com/rust-cli/anstyle) (strips
 color when piped) or [owo-colors](https://github.com/owo-colors/owo-colors).
 
