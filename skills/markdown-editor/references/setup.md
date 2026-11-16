@@ -19,7 +19,8 @@ configs.
 Then tune the configs with the user:
 
 - add vendored or generated docs to `ignores` (globs; see the
-  [markdownlint-cli2 configuration](https://github.com/DavidAnson/markdownlint-cli2/tree/v0.24.1#configuration))
+  [markdownlint-cli2
+  configuration](https://github.com/DavidAnson/markdownlint-cli2/tree/v0.24.1#configuration))
   and `exclude_path` (regular expressions, not globs; see
   [lychee: excluding links](https://lychee.cli.rs/recipes/excluding-links/));
 - adjust rules to match the existing files.
