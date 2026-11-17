@@ -10,10 +10,6 @@ designed to be portable and independent of any specific AI agent. If
 vendor-specific details appear in a skill, they are mistakes worth reporting
 or fixing, not exceptions to the portability principle.
 
-Although the skills are independent of any AI agent, this repository is
-configured for developing them with Claude Code (see
-[Development](#development)).
-
 The author wrote them during their personal exploration of AI capabilities.
 They tested, refined, and iterated on them until the agent's behavior was good
 enough to reuse the skill. Sharing them is the last phase of the process: even
@@ -43,6 +39,9 @@ npx skills add gilbertotcc/agent-skills --skill <name>  # one skill
 ```
 
 ## Development
+
+Although the skills are independent of any AI agent, this repository is
+configured for developing them with Claude Code.
 
 The skills are engineered around a few principles:
 
