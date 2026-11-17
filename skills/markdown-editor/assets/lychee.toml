@@ -3,7 +3,8 @@ extensions = ["md"]
 
 exclude_loopback = true
 
-# Paths to skip. Entries are regular expressions matched against the path, not
-# globs: '(^|/)vendor/' works, 'vendor/**/*.md' does not. Directory sweeps
-# already skip dot-directories such as .github or .agents.
+# Paths to skip, e.g. vendored docs or installed agent skills. Sweeps run with
+# --hidden, so they check dot-directories too: list any to skip here. Entries
+# are regular expressions matched against the path, not globs:
+# '(^|/)vendor/' works, 'vendor/**/*.md' does not.
 # exclude_path = ['(^|/)vendor/']
