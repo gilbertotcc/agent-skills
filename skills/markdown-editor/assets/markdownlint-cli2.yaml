@@ -17,5 +17,5 @@ config:
 gitignore: true
 globs:
   - "**/*.md"
-# Add paths to skip, e.g. vendored or generated docs
+# Add paths to skip, e.g. vendored or generated docs, or installed agent skills
 ignores: []

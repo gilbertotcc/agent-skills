@@ -22,6 +22,14 @@ Then tune the configs with the user:
   [markdownlint-cli2 configuration][mdl-config])
   and `exclude_path` (regular expressions, not globs; see
   [lychee: excluding links](https://lychee.cli.rs/recipes/excluding-links/));
+- if the project installs agent skills, find where they live (e.g.
+  `.agents/skills/`, or agent folders such as `.claude/skills/`; check the
+  project, don't assume) and skip them in both configs: sweeps run lychee
+  with `--hidden`, so dot-directories are checked too;
+- skip locally excluded paths explicitly: lychee skips paths in
+  `.gitignore`, `.git/info/exclude` and the global excludes file, but
+  markdownlint-cli2's `gitignore: true` reads only `.gitignore` files, so
+  add such paths to `ignores` or `.gitignore`;
 - adjust rules to match the existing files.
 
 [mdl-config]: https://github.com/DavidAnson/markdownlint-cli2/tree/v0.24.1#configuration
