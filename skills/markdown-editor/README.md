@@ -1,11 +1,38 @@
 # markdown-editor
 
-An agent skill to write and edit a project's Markdown files in its own
-[markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2/tree/v0.24.1)
-style (or markdownlint's defaults), check links with
-[lychee](https://github.com/lycheeverse/lychee/tree/lychee-v0.24.2), and set
-up starter configs, including an optional GitHub Actions workflow. Text
-bound for external tools, such as issue or PR bodies, stays out of scope.
+An agent skill that keeps a project's Markdown files consistently
+formatted and their links reachable. Text bound for external
+tools, such as issue or PR bodies and chat messages, stays out of scope.
+
+## How it works
+
+After each edit, the agent lints the file and fixes the content instead of
+turning rules off. Once the content is final, it checks the links. It follows
+the project's own configuration, or markdownlint's defaults if there is none.
+When you ask, it can also set up starter configs and an optional GitHub
+Actions workflow.
+
+The author chose two tools, based on long experience with them and the use
+cases they have handled in past projects:
+
+- [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2/tree/v0.24.1)
+  is a linter. It checks Markdown against style rules, such as heading
+  order and line length, and can fix many problems automatically.
+- [lychee](https://github.com/lycheeverse/lychee/tree/lychee-v0.24.2) is a
+  link checker. It visits each link and reports the ones that no longer work.
+
+Quick links:
+
+- [markdownlint rules](https://github.com/DavidAnson/markdownlint/blob/v0.42.2/README.md)
+- [markdownlint-cli2 configuration](https://github.com/DavidAnson/markdownlint-cli2#configuration)
+- [lychee](https://lychee.cli.rs/)
+
+To run the tools by hand:
+
+```sh
+npx --yes markdownlint-cli2 "**/*.md"   # lint every Markdown file
+lychee --no-progress .                  # check links
+```
 
 ## Install
 
@@ -38,10 +65,18 @@ permission settings) allows it.
 
 ## Security & Privacy
 
-- Data leaving the machine: through `npx`, the first run downloads
-  markdownlint-cli2 from npm; lychee sends a request to every URL it
-  checks. Nothing else leaves the machine.
+- Data leaving the machine:
+  - npm: through `npx`, the first run downloads markdownlint-cli2; the
+    optional starter GitHub Actions workflow does the same in CI.
+  - Linked sites: lychee sends a request to every URL it checks. For a
+    broken link, the agent rechecks only its HTTP status, without reading
+    the page.
+  - Web search: only with your consent, to find a replacement for a dead
+    link. The agent treats results as untrusted and asks you to confirm
+    any replacement.
+  - Nothing else leaves the machine.
 - Credentials: none; no accounts or environment variables.
 - Local side effects: `markdownlint-cli2 --fix` rewrites Markdown files in
   place. Setup, only when you ask, copies starter configs and an optional
-  GitHub Actions workflow, and never overwrites existing files.
+  GitHub Actions workflow (its actions pinned to commit SHAs), and never
+  overwrites existing files.

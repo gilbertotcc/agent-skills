@@ -14,7 +14,8 @@ tool whether it already has any config, and skip that tool's rows if so
 
 Offer the workflow only for a project hosted on GitHub, and add it only if
 the user agrees. It lints and checks links on changes to Markdown or the
-configs.
+configs. Its actions are pinned to commit SHAs, with the tag in a
+comment; keep them pinned when updating, e.g. with Dependabot.
 
 Then tune the configs with the user:
 

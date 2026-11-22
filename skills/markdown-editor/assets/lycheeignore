@@ -1,5 +1,10 @@
-# URL regexes that lychee skips, one per line. Put a dated comment above each
-# regex, in one of these forms:
+# URL regexes that lychee skips, one per line. Escape ., ?, +, ( and ); anchor
+# with ^, and with $ for a single URL:
+#   ^https://example\.org/page$     one URL
+#   ^https://(www\.)?example\.com/  a whole host
 #
-# Reachable but fails the link check. (Last access: YYYY-MM-DD)
-# Historical reference; the URL is no longer reachable. (Last access: YYYY-MM-DD)
+# Put a comment above every entry. For a reachability reason, add the date:
+#   # Reachable but fails the link check. (Last access: YYYY-MM-DD)
+#   # Historical reference; the URL is no longer reachable. (Last access: YYYY-MM-DD)
+# Otherwise give the reason, with no date:
+#   # <reason>

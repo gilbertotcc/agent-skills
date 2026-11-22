@@ -41,12 +41,13 @@ lychee --no-progress <file>                # 2. links
    `<file>` as a glob: backslash-escape `* ? [ ] ( )` in it (e.g.
    `docs/\[draft\].md`), and report a name with braces unlinted. Exit 1
    means issues remain: each names a rule and line, which the
-   [markdownlint rules](https://github.com/DavidAnson/markdownlint/blob/v0.42.1/doc/Rules.md)
+   [markdownlint rules](https://github.com/DavidAnson/markdownlint/blob/v0.42.2/README.md)
    explain. Edit the content (don't disable the rule) and rerun until it
    exits 0. "Linting: 0 files" means the config ignores the file.
-2. **Check links** once the content is final. Fix or remove broken ones;
-   for links that look fine but fail, or dead links a historical record
-   must keep, follow [references/broken-links.md](references/broken-links.md).
+2. **Check links** once the content is final. For each broken link, follow
+   [references/broken-links.md](references/broken-links.md): it rechecks
+   the status only and involves the user before searching the web,
+   replacing or excluding a link.
 3. **Repeat** both steps if anything changed.
 
 If a tool is missing, tell the user what wasn't checked and point them to
