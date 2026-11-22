@@ -7,7 +7,7 @@ description: >-
 license: MIT
 compatibility: >-
   Needs markdownlint-cli2, or Node.js with npx (first run downloads it).
-  lychee (link checks) is optional.
+  lychee (link checks) is optional; curl rechecks broken links.
 ---
 
 # Markdown editor

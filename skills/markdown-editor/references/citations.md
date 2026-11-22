@@ -27,7 +27,12 @@ Cite in the text with a clickable shortcut reference link:
 - one author: `([Author, Year])`; two: `([Author & Author, Year])`; three or
   more: `([Author et al., Year])`; a group author: its full name;
 - unknown date: `([Author, n.d.])`;
-- same author and year: `2026a`, `2026b`.
+- same author and year: `2026a`, `2026b`;
+- works whose short forms collide (e.g. two `Smith et al., 2026` with
+  different coauthors): name as many authors as needed to tell them apart,
+  so each label, and its link, is unique;
+- no DOI or URL (e.g. a print book): plain `(Author, Year)`, no link
+  definition.
 
 Mark italics with `*...*`, each span on one line. Write a DOI as
 `https://doi.org/...`; use the URL when there is none. Add "Retrieved Month
@@ -59,7 +64,8 @@ End the document with `## References` when it cites authored works. Sort
 entries alphabetically by the first author's surname (or the group name).
 Write each as `- [Author, Year] <APA 7 reference>`, and put the link
 definition `[Author, Year]: <url or https://doi.org/...>` below the list, so
-the source stays readable. A significant website or repository may also
+the source stays readable; an entry with no DOI or URL has no label or
+link definition. A significant website or repository may also
 appear in the list as a plain inline link with a few words on what it
 covers.
 

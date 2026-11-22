@@ -2,15 +2,18 @@
 
 How to handle a link lychee reports as unreachable.
 
-1. **Recheck it** without reading the page, to tell a dead link from a flaky
-   host:
+1. **Recheck it.** For a local link (a repository-relative path), check
+   that the target exists relative to the linking document, and fix the
+   path or the file. For an HTTP(S) URL, check the status without reading
+   the page, to tell a dead link from a flaky host:
 
    ```sh
-   curl -sIL -o /dev/null -w '%{http_code}\n' <url>
+   curl -sIL --max-time 20 -o /dev/null -w '%{http_code}\n' '<url>'
    ```
 
    This sends a HEAD request and prints only the status code. If the host
    rejects HEAD (405 or 403), retry with `curl -sL` and the same options.
+   A timeout leaves the check incomplete; it does not prove the link dead.
    Never read the page body.
 2. **Replace a dead link,** unless step 5 applies. Ask the user whether they
    know the new URL. Search the web for a working URL (a moved page, an

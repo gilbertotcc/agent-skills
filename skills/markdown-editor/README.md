@@ -33,6 +33,10 @@ permission settings) allows it.
   cargo install lychee   # any platform with Rust
   ```
 
+- **curl** (optional, rechecks broken links): preinstalled on macOS, most
+  Linux distributions and Windows 10 or later; else see
+  [curl downloads](https://curl.se/download.html).
+
 To run them by hand, from the project root:
 
 ```sh
