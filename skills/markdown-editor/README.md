@@ -4,36 +4,6 @@ An agent skill that keeps a project's Markdown files consistently
 formatted and their links reachable. Text bound for external
 tools, such as issue or PR bodies and chat messages, stays out of scope.
 
-## How it works
-
-After each edit, the agent lints the file and fixes the content instead of
-turning rules off. Once the content is final, it checks the links. It follows
-the project's own configuration, or markdownlint's defaults if there is none.
-When you ask, it can also set up starter configs and an optional GitHub
-Actions workflow.
-
-The author chose two tools, based on long experience with them and the use
-cases they have handled in past projects:
-
-- [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2/tree/v0.24.1)
-  is a linter. It checks Markdown against style rules, such as heading
-  order and line length, and can fix many problems automatically.
-- [lychee](https://github.com/lycheeverse/lychee/tree/lychee-v0.24.2) is a
-  link checker. It visits each link and reports the ones that no longer work.
-
-Quick links:
-
-- [markdownlint rules](https://github.com/DavidAnson/markdownlint/blob/v0.42.2/README.md)
-- [markdownlint-cli2 configuration](https://github.com/DavidAnson/markdownlint-cli2#configuration)
-- [lychee](https://lychee.cli.rs/)
-
-To run the tools by hand:
-
-```sh
-npx --yes markdownlint-cli2 "**/*.md"   # lint every Markdown file
-lychee --no-progress .                  # check links
-```
-
 ## Install
 
 ```sh
@@ -63,6 +33,13 @@ permission settings) allows it.
   cargo install lychee   # any platform with Rust
   ```
 
+To run them by hand, from the project root:
+
+```sh
+npx --yes markdownlint-cli2 "**/*.md"   # lint every Markdown file
+lychee --no-progress .                  # check links
+```
+
 ## Security & Privacy
 
 - Data leaving the machine:
@@ -80,3 +57,26 @@ permission settings) allows it.
   place. Setup, only when you ask, copies starter configs and an optional
   GitHub Actions workflow (its actions pinned to commit SHAs), and never
   overwrites existing files.
+
+## How it works
+
+After each edit, the agent lints the file and fixes the content instead of
+turning rules off. Once the content is final, it checks the links. It follows
+the project's own configuration, or markdownlint's defaults if there is none.
+When you ask, it can also set up starter configs and an optional GitHub
+Actions workflow.
+
+The author chose two tools, based on long experience with them and the use
+cases they have handled in past projects:
+
+- [markdownlint-cli2](https://github.com/DavidAnson/markdownlint-cli2/tree/v0.24.1)
+  is a linter. It checks Markdown against style rules, such as heading
+  order and line length, and can fix many problems automatically.
+- [lychee](https://github.com/lycheeverse/lychee/tree/lychee-v0.24.2) is a
+  link checker. It visits each link and reports the ones that no longer work.
+
+Quick links:
+
+- [markdownlint rules](https://github.com/DavidAnson/markdownlint/blob/v0.42.2/README.md)
+- [markdownlint-cli2 configuration](https://github.com/DavidAnson/markdownlint-cli2#configuration)
+- [lychee](https://lychee.cli.rs/)
