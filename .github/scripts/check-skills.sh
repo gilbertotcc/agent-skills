@@ -56,7 +56,8 @@ $have_dir || dir=skills
 
 command -v yq >/dev/null 2>&1 || die "yq not found (need mikefarah yq v4)"
 yq_version=$(yq --version 2>&1 || true)
-[[ $yq_version == *mikefarah* && $yq_version == *v4* ]] \
+# Older releases print "version v4.x.y", newer ones "version 4.x.y".
+[[ $yq_version == *mikefarah* && $yq_version =~ version\ v?4\. ]] \
   || die "need mikefarah yq v4, found: $yq_version"
 
 # Count characters, not bytes, in ${#var}.
