@@ -1,9 +1,11 @@
-# URL regexes that lychee skips, one per line. Escape ., ?, +, ( and ); anchor
-# with ^, and with $ for a single URL:
-#   ^https://example\.org/page$     one URL
-#   ^https://(www\.)?example\.com/  a whole host
+# URLs that lychee skips, one per line: a fixed URL, written as is, or a
+# regular expression matching several URLs (escape ., ?, +, ( and ); anchor
+# with ^):
+#   https://example.org/page        one URL
+#   ^https://(www\.)?example\.com/  every URL on a host
 #
-# Put a comment above every entry. For a reachability reason, add the date:
+# Put a comment above every entry; above a regex, explain why all the URLs
+# it matches are ignored. For a reachability reason, add the date:
 #   # Reachable but fails the link check. (Last access: YYYY-MM-DD)
 #   # Historical reference; the URL is no longer reachable. (Last access: YYYY-MM-DD)
 # Otherwise give the reason, with no date:

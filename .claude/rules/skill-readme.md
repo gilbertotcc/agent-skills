@@ -12,9 +12,9 @@ before they install it.
 
 Every `skills/<name>/README.md` is for users, not agents: a one-paragraph
 summary, then `## Install`, `## Requirements` and `## Security & Privacy`,
-in that order, then an optional `## How it works`. Don't repeat `SKILL.md`
-instructions. Write Requirements and Security & Privacy even when there is
-nothing to declare ("None.").
+in that order, then optional `## How it works` and `## References`. Don't
+repeat `SKILL.md` instructions. Write Requirements and Security & Privacy
+even when there is nothing to declare ("None.").
 
 - **Requirements:** tools (required or optional, with install hints),
   accounts, environment variables (and where to get their values), and
@@ -29,6 +29,9 @@ nothing to declare ("None.").
   methods a non-expert may not know): in plain words, the approach the
   skill follows, then each tool it uses, what it does and why it was
   chosen, with a link. Keep it under ~40 lines; link out for more.
+- **References** (optional): links to docs that help users solve issues
+  on their own (rules, configuration), each with a few words on what it
+  covers.
 
 ## SKILL.md frontmatter
 
@@ -75,4 +78,8 @@ npx skills add gilbertotcc/agent-skills --skill <name>
 
 <Optional. The approach in plain words; each tool, what it does, why it
 was chosen, and a link.>
+
+## References
+
+<Optional. - [<doc>](<url>): <what it covers>>
 ````

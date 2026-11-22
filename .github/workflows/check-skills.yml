@@ -44,6 +44,17 @@ jobs:
         else
           echo "::notice::No skills/ directory yet; skipping."
         fi
+    - name: Install yq
+      if: steps.skills.outputs.present == 'true'
+      env:
+        YQ_VERSION: v4.54.3
+        YQ_SHA256: 129534601871538efe0ba4c5e62a34fb1d5f469bcb975c4fddeb467d82974973
+      run: |
+        curl -fsSL -o "$RUNNER_TEMP/yq" \
+          "https://github.com/mikefarah/yq/releases/download/$YQ_VERSION/yq_linux_amd64"
+        echo "$YQ_SHA256  $RUNNER_TEMP/yq" | sha256sum -c -
+        chmod +x "$RUNNER_TEMP/yq"
+        echo "$RUNNER_TEMP" >> "$GITHUB_PATH"
     # Errors on missing or mismatched frontmatter; warns on size limits.
     - name: Check SKILL.md files
       if: steps.skills.outputs.present == 'true'

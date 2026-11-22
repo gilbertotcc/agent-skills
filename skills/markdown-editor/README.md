@@ -75,8 +75,11 @@ cases they have handled in past projects:
 - [lychee](https://github.com/lycheeverse/lychee/tree/lychee-v0.24.2) is a
   link checker. It visits each link and reports the ones that no longer work.
 
-Quick links:
+## References
 
-- [markdownlint rules](https://github.com/DavidAnson/markdownlint/blob/v0.42.2/README.md)
-- [markdownlint-cli2 configuration](https://github.com/DavidAnson/markdownlint-cli2#configuration)
-- [lychee](https://lychee.cli.rs/)
+- What each lint rule checks and how to fix a reported issue:
+  [markdownlint rules](https://github.com/DavidAnson/markdownlint/blob/v0.42.2/README.md)
+- How to set rules, globs and ignored paths for a project:
+  [markdownlint-cli2 configuration](https://github.com/DavidAnson/markdownlint-cli2#configuration)
+- How to install and configure the link checker, and exclude links from
+  it: [lychee](https://lychee.cli.rs/)

@@ -9,7 +9,8 @@ exclude_loopback = true
 # '(^|/)vendor/' works, 'vendor/**/*.md' does not.
 # exclude_path = ['(^|/)vendor/']
 
-# URL regexes to skip, with the same comment conventions as .lycheeignore:
-# a reason above each entry, dated only for reachability reasons.
+# URLs to skip (fixed URLs or regexes), with the same comment conventions
+# as .lycheeignore: a reason above each entry, dated only for reachability
+# reasons.
 # Reachable but fails the link check. (Last access: YYYY-MM-DD)
-# exclude = ['^https://example\.org/page$']
+# exclude = ['https://example.org/page']
