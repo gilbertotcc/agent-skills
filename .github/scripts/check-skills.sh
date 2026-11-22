@@ -55,10 +55,6 @@ $have_dir || dir=skills
 [[ -d $dir ]] || usage_error "not a directory: $dir"
 
 command -v yq >/dev/null 2>&1 || die "yq not found (need mikefarah yq v4)"
-yq_version=$(yq --version 2>&1 || true)
-[[ $yq_version == *mikefarah* \
-  && ( $yq_version == *" v4."* || $yq_version == *" 4."* ) ]] \
-  || die "need mikefarah yq v4, found: $yq_version"
 
 # Count characters, not bytes, in ${#var}.
 for loc in C.UTF-8 en_US.UTF-8; do

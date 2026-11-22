@@ -33,9 +33,8 @@ permission settings) allows it.
   cargo install lychee   # any platform with Rust
   ```
 
-- **curl** (optional, rechecks broken links): preinstalled on macOS, most
-  Linux distributions and Windows 10 or later; else see
-  [curl downloads](https://curl.se/download.html).
+- **[curl](https://curl.se/)** (optional): rechecks the status of broken
+  links.
 
 To run them by hand, from the project root:
 
@@ -79,11 +78,20 @@ cases they have handled in past projects:
 - [lychee](https://github.com/lycheeverse/lychee/tree/lychee-v0.24.2) is a
   link checker. It visits each link and reports the ones that no longer work.
 
+To solve an issue on your own, see the lint rules ([Anson, 2026]), how to
+configure the linter ([Anson, n.d.]) and the link checker's documentation
+([lycheeverse, n.d.]).
+
 ## References
 
-- What each lint rule checks and how to fix a reported issue:
-  [markdownlint rules](https://github.com/DavidAnson/markdownlint/blob/v0.42.2/README.md)
-- How to set rules, globs and ignored paths for a project:
-  [markdownlint-cli2 configuration](https://github.com/DavidAnson/markdownlint-cli2#configuration)
-- How to install and configure the link checker, and exclude links from
-  it: [lychee](https://lychee.cli.rs/)
+- [Anson, n.d.] Anson, D. (n.d.). *markdownlint-cli2: Configuration*.
+  GitHub. Retrieved November 22, 2026, from
+  <https://github.com/DavidAnson/markdownlint-cli2#configuration>
+- [Anson, 2026] Anson, D. (2026). *markdownlint* (Version 0.42.2)
+  [Computer software]. GitHub.
+- [lycheeverse, n.d.] lycheeverse. (n.d.). *lychee documentation*.
+  Retrieved November 22, 2026, from <https://lychee.cli.rs/>
+
+[Anson, n.d.]: https://github.com/DavidAnson/markdownlint-cli2#configuration
+[Anson, 2026]: https://github.com/DavidAnson/markdownlint/blob/v0.42.2/README.md
+[lycheeverse, n.d.]: https://lychee.cli.rs/

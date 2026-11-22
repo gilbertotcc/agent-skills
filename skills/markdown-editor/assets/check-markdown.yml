@@ -34,7 +34,7 @@ jobs:
       with:
         node-version: lts/*
     - name: Run markdownlint-cli2
-      run: npx --yes markdownlint-cli2@0.24.1 "**/*.md" "#node_modules"
+      run: npx --yes markdownlint-cli2@0.24.1
 
   check-urls:
     name: Check links

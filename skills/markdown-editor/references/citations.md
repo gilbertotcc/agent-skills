@@ -55,6 +55,7 @@ Patterns follow the APA Style common reference examples guide
 | Blog post          | Author, A. A. (Year, Month D). Title of post. *Blog Name*. URL                                                           |
 | Webpage article    | Author, A. A. (Year, Month D). *Title of page*. Site Name. URL                                                           |
 | Changing webpage   | Group Name. (n.d.). *Title of page*. Retrieved Month D, YYYY, from URL                                                   |
+| Software           | Author, A. A. (Year). *Title* (Version x.y) [Computer software]. Publisher. URL                                          |
 | Video              | Channel or Author. (Year, Month D). *Title of video* [Video]. Site Name. URL                                             |
 | Podcast episode    | Host, A. A. (Host). (Year, Month D). Title of episode (No. x) [Audio podcast episode]. In *Podcast Name*. Publisher. URL |
 
@@ -65,9 +66,8 @@ entries alphabetically by the first author's surname (or the group name).
 Write each as `- [Author, Year] <APA 7 reference>`, and put the link
 definition `[Author, Year]: <url or https://doi.org/...>` below the list, so
 the source stays readable; an entry with no DOI or URL has no label or
-link definition. A significant website or repository may also
-appear in the list as a plain inline link with a few words on what it
-covers.
+link definition. A website, repository or tool listed there also gets an
+APA 7 entry (software, webpage or changing webpage pattern).
 
 ```markdown
 Readers skim headings first ([Nielsen, 2006]).
